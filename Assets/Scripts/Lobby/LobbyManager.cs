@@ -16,9 +16,8 @@ public class LobbyManager : MonoBehaviour
     private IEnumerator _heartbeatCoroutine;
     private IEnumerator _pollLobbyCoroutine;
 
-    private ServiceRateLimiter _getLobbyCooldown = new ServiceRateLimiter(1, 1f);
-
     private readonly string _lobbyName = Guid.NewGuid().ToString();
+    private readonly int _rateLimitGetLobby = 1;
 
     private void Start()
     {
@@ -33,7 +32,16 @@ public class LobbyManager : MonoBehaviour
             CreateLobbyOptions lobbyOptions = new()
             {
                 IsPrivate = false,
-                Player = new (id: AuthenticationService.Instance.PlayerId)
+                Player = new (
+                    id: AuthenticationService.Instance.PlayerId,
+                    data: new Dictionary<string, PlayerDataObject>()
+                    {
+                        {
+                            "Ready", new PlayerDataObject(
+                                visibility: PlayerDataObject.VisibilityOptions.Public,
+                                value: "false")
+                        }
+                    })
             };
 
             Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(_lobbyName, 2, lobbyOptions);
@@ -45,11 +53,9 @@ public class LobbyManager : MonoBehaviour
 
             _localLobby.InitLobby(lobby);
 
-            await PollLobby();
-
-            //_pollLobbyCoroutine = PollLobbyCoroutine(1);
-            //StartCoroutine(_pollLobbyCoroutine);
-            //Debug.Log("Started poll lobby coroutine.");
+            _pollLobbyCoroutine = PollLobbyCoroutine(_rateLimitGetLobby);
+            StartCoroutine(_pollLobbyCoroutine);
+            Debug.Log("Started poll lobby coroutine.");
         }
         catch (Exception e)
         {
@@ -72,6 +78,8 @@ public class LobbyManager : MonoBehaviour
     {
         try
         {
+            // TODO: Check if player is owner of the lobby before deleting it, else leave lobby
+
             // Delete current lobby
             await LobbyService.Instance.DeleteLobbyAsync(_localLobby.LobbyId);
             Debug.Log("Current lobby deleted.");
@@ -82,7 +90,16 @@ public class LobbyManager : MonoBehaviour
             // Join existing lobby
             JoinLobbyByCodeOptions lobbyOptions = new()
             {
-                Player = new (id: AuthenticationService.Instance.PlayerId)
+                Player = new (
+                    id: AuthenticationService.Instance.PlayerId,
+                    data: new Dictionary<string, PlayerDataObject>()
+                    {
+                        {
+                            "Ready", new PlayerDataObject(
+                                visibility: PlayerDataObject.VisibilityOptions.Public,
+                                value: "false")
+                        }
+                    })
             };
 
             Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(_codeInput.text, lobbyOptions);
@@ -90,12 +107,12 @@ public class LobbyManager : MonoBehaviour
 
             _localLobby.InitLobby(lobby);
 
-            await PollLobby();
+            StopCoroutine(_pollLobbyCoroutine);
+            await Task.Delay(_rateLimitGetLobby * 1000);
 
-            //StopCoroutine(_pollLobbyCoroutine);
-            //_pollLobbyCoroutine = PollLobbyCoroutine(1);
-            //StartCoroutine(_pollLobbyCoroutine);
-            //Debug.Log("Started poll lobby coroutine.");
+            _pollLobbyCoroutine = PollLobbyCoroutine(_rateLimitGetLobby);
+            StartCoroutine(_pollLobbyCoroutine);
+            Debug.Log("Started poll lobby coroutine.");
         }
         catch (LobbyServiceException e)
         {
@@ -119,14 +136,29 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    public async Task PollLobby()
+    public async void GetReady()
     {
-        Lobby updatedLobby = await LobbyService.Instance.GetLobbyAsync(_localLobby.LobbyId);
+        try
+        {
+            UpdatePlayerOptions options = new()
+            {
+                Data = new Dictionary<string, PlayerDataObject>()
+                {
+                    {
+                        "Ready", new PlayerDataObject(
+                            visibility: PlayerDataObject.VisibilityOptions.Public,
+                            value: "true")
+                    }
+                }
+            };
 
-        if (_getLobbyCooldown.TaskQueued)
-            return;
-        await _getLobbyCooldown.QueueUntilCooldown();
-
-        _localLobby.UpdateLobby(updatedLobby);
+            await LobbyService.Instance.UpdatePlayerAsync(_localLobby.LobbyId, AuthenticationService.Instance.PlayerId, options);
+            _localLobby.GetReady();
+            Debug.Log("Player's ready state set to true.");
+        }
+        catch (LobbyServiceException e)
+        { 
+            Debug.LogError(e);
+        }
     }
 }

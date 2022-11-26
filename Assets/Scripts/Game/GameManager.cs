@@ -10,21 +10,17 @@ public class GameManager : MonoBehaviour
     public enum GameState
     {
         SPLASH_SCREEN = 0,
-        MAIN_MENU,
         LOBBY,
+        COUNTDOWN,
         IN_GAME
     }
 
-    private GameState _gameState;
+    public GameState CurrentGameState { get; set; }
+    public LocalLobby Lobby { get; set; }
 
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
         Instance = this;
-    }
-
-    public void SetGameState(GameState state)
-    {
-        _gameState = state;
     }
 }

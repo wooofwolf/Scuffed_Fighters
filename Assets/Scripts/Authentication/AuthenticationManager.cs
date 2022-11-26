@@ -64,7 +64,7 @@ public class AuthenticationManager : MonoBehaviour
             _authState = AuthenticationState.ERROR;
         }
 
-        GameManager.Instance.SetGameState(GameManager.GameState.LOBBY);
+        GameManager.Instance.CurrentGameState = GameManager.GameState.LOBBY;
         SceneManager.LoadSceneAsync(1);
     }
 }
