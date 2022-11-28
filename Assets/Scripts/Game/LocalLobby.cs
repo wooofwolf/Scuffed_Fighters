@@ -12,7 +12,7 @@ using UnityEngine.UI;
 public class LocalLobby : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _lobbyCodeUI;
-    [SerializeField] private Button readyButtonUI;
+    [SerializeField] private Button _readyButtonUI;
     [SerializeField] private TextMeshProUGUI _playersReadyUI;
 
     public string LobbyId { get; set; }
@@ -26,12 +26,10 @@ public class LocalLobby : MonoBehaviour
 
     private const int MAX_PLAYER_COUNT = 2;
 
-    private readonly GameManager gameManager = GameManager.Instance;
+    private readonly GameManager _gameManager = GameManager.Instance;
 
     public void InitLobby(Lobby lobby)
     {
-        gameManager.Lobby = this;
-
         LobbyId = lobby.Id;
         LobbyCode = lobby.LobbyCode;
         HostId = lobby.HostId;
@@ -50,8 +48,8 @@ public class LocalLobby : MonoBehaviour
         _lobbyCodeUI.SetText(sb);
         Debug.Log("Lobby code updated!");
 
-        if (IsPlayerReady) readyButtonUI.gameObject.SetActive(false);
-        else readyButtonUI.gameObject.SetActive(true);
+        if (IsPlayerReady) _readyButtonUI.gameObject.SetActive(false);
+        else _readyButtonUI.gameObject.SetActive(true);
         Debug.Log("Ready button updated!");
 
         sb = new("/ 2", 5);
@@ -76,15 +74,15 @@ public class LocalLobby : MonoBehaviour
             p.Data.TryGetValue("Ready", out var playerData);
             if (playerData.Value.Equals("true"))
             {
-                if (IsPlayerReady && gameManager.CurrentGameState == GameManager.GameState.LOBBY)
+                if (IsPlayerReady && _gameManager.CurrentGameState == GameManager.GameState.LOBBY)
                 {
                     PlayersReady = MAX_PLAYER_COUNT;
-                    gameManager.CurrentGameState = GameManager.GameState.COUNTDOWN;
+                    _gameManager.CurrentGameState = GameManager.GameState.COUNTDOWN;
                     StartCoroutine(Countdown(5));
                 }
                 else PlayersReady = 1;
 
-                if (gameManager.CurrentGameState == GameManager.GameState.LOBBY) UpdateGUI();
+                if (_gameManager.CurrentGameState == GameManager.GameState.LOBBY) UpdateGUI();
             }
         }
 
@@ -113,7 +111,8 @@ public class LocalLobby : MonoBehaviour
             --counter;
         }
 
-        gameManager.CurrentGameState = GameManager.GameState.IN_GAME;
+        _gameManager.CurrentGameState = GameManager.GameState.IN_GAME;
+        _gameManager.IsHost = AuthenticationService.Instance.PlayerId == HostId;
         SceneManager.LoadSceneAsync(2);
     }
 }

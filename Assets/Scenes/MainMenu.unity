@@ -1797,7 +1797,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _lobbyCodeUI: {fileID: 1862243435}
-  readyButtonUI: {fileID: 2129918617}
+  _readyButtonUI: {fileID: 2129918617}
   _playersReadyUI: {fileID: 90892566}
 --- !u!224 &2049556996
 RectTransform:
