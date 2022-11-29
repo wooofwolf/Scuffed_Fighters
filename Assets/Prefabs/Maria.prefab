@@ -81,6 +81,8 @@ GameObject:
   - component: {fileID: 3355026203511013722}
   - component: {fileID: 4597583236239772479}
   - component: {fileID: 6139230012060746840}
+  - component: {fileID: 5805131156808983782}
+  - component: {fileID: 9146606764670721472}
   m_Layer: 0
   m_Name: Maria
   m_TagString: Player
@@ -222,6 +224,39 @@ CapsuleCollider:
   m_Height: 1.9014952
   m_Direction: 1
   m_Center: {x: 0.0011340976, y: 0.8868104, z: 0}
+--- !u!95 &5805131156808983782
+Animator:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 243954469101423062}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 0c500b831b0d44a48b313011927da954, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &9146606764670721472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 243954469101423062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86072c056826dae4fa2c659af72fba61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Animator: {fileID: 5805131156808983782}
 --- !u!1 &728711493900459175
 GameObject:
   m_ObjectHideFlags: 0
