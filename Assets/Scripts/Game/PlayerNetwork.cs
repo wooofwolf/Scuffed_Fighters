@@ -6,12 +6,21 @@ using UnityEngine.InputSystem;
 
 public class PlayerNetwork : NetworkBehaviour
 {
-    [SerializeField] private float _movementSpeed;
+    [Header("Horizontal Movement")]
+    [SerializeField] private float _movementSpeed = 1.0f;
+    [SerializeField] private float _smoothInputSpeed = 0.2f;
 
     private Rigidbody _rigidbody;
     private Animator _animator;
     private NetworkManager _networkManager;
     private PlayerInputActions _playerInputActions;
+
+    private float _normalizedInputX;
+    private float _currentInputX;
+    private bool _isFacingRight;
+    private bool _isCrouching = false;
+    private bool _isAttacking = false;
+    private bool _allowCombo = false;
 
     private void Start()
     {
@@ -20,32 +29,104 @@ public class PlayerNetwork : NetworkBehaviour
 
         _networkManager = NetworkManager.Singleton;
 
-        _playerInputActions = new ();
-        _playerInputActions.Enable();
-        _playerInputActions.Player.Neutral.performed += NeutralPerformed;
-
         if (!IsOwner) return;
 
-        if (_networkManager.IsHost) transform.SetPositionAndRotation(new Vector3(-2, 0, 0), Quaternion.Euler(0, 90, 0));
-        else transform.SetPositionAndRotation(new Vector3(2, 0, 0), Quaternion.Euler(0, -90, 0));
+        _playerInputActions = new ();
+        _playerInputActions.Enable();
+        _playerInputActions.Player.Jump.performed += JumpPerformed;
+        _playerInputActions.Player.Crouch.performed += CrouchPerformed;
+        _playerInputActions.Player.Light.performed += LightPerformed;
+        _playerInputActions.Player.Heavy.performed += HeavyPerformed;
+        _playerInputActions.Player.Heavy.canceled += HeavyCanceled;
+
+        if (_networkManager.IsHost)
+        {
+            transform.SetPositionAndRotation(new Vector3(-2, 0, 0), Quaternion.Euler(0, 90, 0));
+            _isFacingRight = true;
+        }
+        else
+        {
+            transform.SetPositionAndRotation(new Vector3(2, 0, 0), Quaternion.Euler(0, -90, 0));
+            _isFacingRight = false;
+        }
+    }
+
+    private void Update()
+    {
+        if (!IsOwner) return;
+
+        _normalizedInputX = _playerInputActions.Player.Movement.ReadValue<float>();
     }
 
     private void FixedUpdate()
     {
         if (!IsOwner) return;
+        if (_isAttacking) return;
+        if (_isCrouching) return;
 
-        float inputX = _playerInputActions.Player.Movement.ReadValue<float>();
-        _rigidbody.MovePosition(transform.position + _movementSpeed * Time.deltaTime * new Vector3(inputX, 0, 0));
+        _currentInputX = Mathf.Lerp(_currentInputX, _normalizedInputX, _smoothInputSpeed);
+        _rigidbody.MovePosition(transform.position + _movementSpeed * Time.deltaTime * new Vector3(_currentInputX, 0, 0));
 
-        Debug.Log(inputX);
-
-        _animator.SetFloat("xInput", inputX);
+        if (_isFacingRight) _animator.SetFloat("xInput", _currentInputX);
+        else _animator.SetFloat("xInput", -_currentInputX);
     }
 
-    private void NeutralPerformed(InputAction.CallbackContext context)
+    private void JumpPerformed(InputAction.CallbackContext context)
     {
-        if (!IsOwner) return;
+        Debug.Log("Jump");
+    }
 
-        Debug.Log("Neutral attack");
+    private void CrouchPerformed(InputAction.CallbackContext context)
+    {
+        _isCrouching = !_isCrouching;
+        _animator.SetBool("isCrouching", _isCrouching);
+    }
+
+    private void LightPerformed(InputAction.CallbackContext context)
+    {
+        if (_isAttacking && !_allowCombo) return;
+
+        _isAttacking = true;
+        _allowCombo = false;
+
+        if (_isCrouching) _animator.CrossFadeInFixedTime("Light_Crouch", 0.1f);
+        else
+        {
+            if (_normalizedInputX == 0) _animator.CrossFadeInFixedTime("Light_Neutral", 0.1f);
+            else _animator.CrossFadeInFixedTime("Light_Forward", 0.1f);
+        }
+    }
+
+    private void HeavyPerformed(InputAction.CallbackContext context)
+    {
+        if (_isAttacking && !_allowCombo) return;
+
+        _isAttacking = true;
+        _allowCombo = false;
+
+        if (_isCrouching)
+        {
+            // Heavy crouch attack?
+        }
+        else
+        {
+            if (_normalizedInputX == 0) _animator.CrossFadeInFixedTime("Heavy_Neutral_Charge", 0.1f);
+        }
+    }
+
+    private void HeavyCanceled(InputAction.CallbackContext context)
+    {
+        if (_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name == "Heavy_Neutral_Charge") _animator.CrossFadeInFixedTime("Heavy_Neutral_Attack", 0.1f);
+    }
+
+    public void AllowCombo()
+    {
+        _allowCombo = true;
+    }
+
+    public void FinishAttack()
+    {
+        _isAttacking = false;
+        _allowCombo = false;
     }
 }

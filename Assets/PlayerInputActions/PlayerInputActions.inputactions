@@ -6,15 +6,6 @@
             "id": "a85ad553-7d6f-4536-9556-9fa1b3f8ad8f",
             "actions": [
                 {
-                    "name": "Neutral",
-                    "type": "Button",
-                    "id": "2a4cba4e-1eda-4e6c-a551-d7ca1ac4b333",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Movement",
                     "type": "Value",
                     "id": "8c077536-c1cf-4c6c-8cda-ec07cb589ae9",
@@ -22,17 +13,53 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Jump",
+                    "type": "Button",
+                    "id": "579fa86b-d067-43c7-9c50-3f3cbaf7eefc",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Crouch",
+                    "type": "Button",
+                    "id": "8cadc209-7076-4715-a1c9-9608ec28ae15",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Heavy",
+                    "type": "Button",
+                    "id": "3040f9cd-2e3f-4365-b018-dc5c6e07bb41",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Light",
+                    "type": "Button",
+                    "id": "2fa3efb3-3adc-4f9c-8d5a-84498037cffb",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
                 {
                     "name": "",
-                    "id": "b33faea3-9ef0-4a4a-87a8-62d58f390722",
-                    "path": "<Keyboard>/j",
+                    "id": "604697d3-df40-49bf-98c6-080ff96b9c1e",
+                    "path": "<Keyboard>/w",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
-                    "action": "Neutral",
+                    "action": "Jump",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -48,7 +75,7 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "negative",
+                    "name": "Negative",
                     "id": "2f818608-a5a7-4f6a-8d4f-525245dedb3e",
                     "path": "<Keyboard>/a",
                     "interactions": "",
@@ -59,7 +86,7 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "positive",
+                    "name": "Positive",
                     "id": "406951d4-e7d5-46ca-a74b-e1e8587da0c1",
                     "path": "<Keyboard>/d",
                     "interactions": "",
@@ -68,6 +95,39 @@
                     "action": "Movement",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "61c5a90f-7398-4e77-b5ab-f7a8e473a096",
+                    "path": "<Keyboard>/s",
+                    "interactions": "Press(behavior=2)",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Crouch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8c430225-0e4a-4786-86aa-e084663f3126",
+                    "path": "<Keyboard>/k",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Heavy",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1352145b-de87-4499-ab95-47afe7a90c1c",
+                    "path": "<Keyboard>/j",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Light",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }
