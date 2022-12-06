@@ -41,7 +41,15 @@ public class LobbyManager : MonoBehaviour
                                 visibility: PlayerDataObject.VisibilityOptions.Public,
                                 value: "false")
                         }
-                    })
+                    }),
+                Data = new Dictionary<string, DataObject>()
+                {
+                    {
+                        "RelayJoinKey", new DataObject(
+                            visibility: DataObject.VisibilityOptions.Public,
+                            value: "")
+                    }
+                }
             };
 
             Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(_lobbyName, 2, lobbyOptions);
