@@ -14,86 +14,93 @@ public class LocalLobby : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _lobbyCodeUI;
     [SerializeField] private Button _readyButtonUI;
     [SerializeField] private TextMeshProUGUI _playersReadyUI;
-
-    public string LobbyId { get; set; }
-    public string LobbyCode { get; set; }
-    public string HostId { get; set; }
-    public int AvailableSlots { get; set; }
-
-    public bool IsPlayerReady { get; set; }
-
-    public int PlayersReady { get; set; }
+    [SerializeField] private TMP_InputField _codeInput;
 
     private const int MAX_PLAYER_COUNT = 2;
 
     private readonly GameManager _gameManager = GameManager.Instance;
+    private Lobby _currentLobby;
 
-    public void InitLobby(Lobby lobby)
+    private string _lobbyId;
+    private string _lobbyCode;
+    private string _hostId;
+    private int _availableSlots;
+    private bool _isPlayerReady;
+    private int _playersReady;
+
+    private void Start()
     {
-        LobbyId = lobby.Id;
-        LobbyCode = lobby.LobbyCode;
-        HostId = lobby.HostId;
-        AvailableSlots = lobby.AvailableSlots;
-        IsPlayerReady = false;
-        PlayersReady = 0;
-        Debug.Log("Local lobby initialized!");
+        HostLocalLobby();
+    }
 
-        UpdateGUI();
+    private void Update()
+    {
+        if (_currentLobby == null) return;
+
+        if (_currentLobby != _gameManager.LobbyManager.CurrentLobby && _gameManager.CurrentGameState == GameManager.GameState.LOBBY)
+        {
+            _currentLobby = _gameManager.LobbyManager.CurrentLobby;
+
+            if (_currentLobby.Id != _lobbyId) _lobbyId = _currentLobby.Id;
+            if (_currentLobby.LobbyCode != _lobbyCode) _lobbyCode = _currentLobby.LobbyCode;
+            if (_currentLobby.HostId != _hostId) _hostId = _currentLobby.HostId;
+            if (_currentLobby.AvailableSlots != _availableSlots) _availableSlots = _currentLobby.AvailableSlots;
+
+            _playersReady = 0;
+            foreach (Player p in _currentLobby.Players)
+            {
+                p.Data.TryGetValue("Ready", out var playerData);
+                if (playerData.Value.Equals("true"))
+                {
+                    ++_playersReady;
+                }
+            }
+
+            UpdateGUI();
+
+            if (_playersReady == MAX_PLAYER_COUNT)
+            {
+                _gameManager.CurrentGameState = GameManager.GameState.COUNTDOWN;
+                StartCoroutine(Countdown(5));
+            }
+
+            Debug.Log("Lobby updated.");
+        }
+    }
+
+    private async void HostLocalLobby()
+    {
+        _currentLobby = await _gameManager.LobbyManager.HostLobby();
+    }
+
+    public async void JoinLobby()
+    {
+        _currentLobby = await _gameManager.LobbyManager.JoinLobby(_codeInput.text);
     }
 
     private void UpdateGUI()
     {
         StringBuilder sb = new("Lobby Code: ", 18);
-        sb.Append(LobbyCode);
+        sb.Append(_lobbyCode);
         _lobbyCodeUI.SetText(sb);
         Debug.Log("Lobby code updated!");
 
-        if (IsPlayerReady) _readyButtonUI.gameObject.SetActive(false);
+        if (_isPlayerReady) _readyButtonUI.gameObject.SetActive(false);
         else _readyButtonUI.gameObject.SetActive(true);
         Debug.Log("Ready button updated!");
 
         sb = new("/ 2", 5);
-        sb.Insert(0, PlayersReady + " ");
+        sb.Insert(0, _playersReady + " ");
         _playersReadyUI.SetText(sb);
         Debug.Log("Players ready updated!");
 
         Debug.Log("Local lobby GUI updated!");
     }
 
-    public void UpdateLobby(Lobby lobby)
-    {
-        if (lobby.Id != LobbyId) LobbyId = lobby.Id;
-        if (lobby.LobbyCode != LobbyCode) LobbyCode = lobby.LobbyCode;
-        if (lobby.HostId != HostId) HostId = lobby.HostId;
-        if (lobby.AvailableSlots != AvailableSlots) AvailableSlots = lobby.AvailableSlots;
-        
-        foreach (Player p in lobby.Players)
-        {
-            if (p.Id == AuthenticationService.Instance.PlayerId) continue;
-
-            p.Data.TryGetValue("Ready", out var playerData);
-            if (playerData.Value.Equals("true"))
-            {
-                if (IsPlayerReady && _gameManager.CurrentGameState == GameManager.GameState.LOBBY)
-                {
-                    PlayersReady = MAX_PLAYER_COUNT;
-                    _gameManager.CurrentGameState = GameManager.GameState.COUNTDOWN;
-                    StartCoroutine(Countdown(5));
-                }
-                else PlayersReady = 1;
-
-                if (_gameManager.CurrentGameState == GameManager.GameState.LOBBY) UpdateGUI();
-            }
-        }
-
-        Debug.Log("Lobby updated.");
-    }
-
     public void GetReady()
     {
-        IsPlayerReady = true;
-        ++PlayersReady;
-        UpdateGUI();
+        _gameManager.LobbyManager.GetReady();
+        _isPlayerReady = true;
     }
 
     private IEnumerator Countdown(float duration)
@@ -112,7 +119,7 @@ public class LocalLobby : MonoBehaviour
         }
 
         _gameManager.CurrentGameState = GameManager.GameState.IN_GAME;
-        _gameManager.IsHost = AuthenticationService.Instance.PlayerId == HostId;
+        _gameManager.IsHost = AuthenticationService.Instance.PlayerId == _hostId;
         SceneManager.LoadSceneAsync(2);
     }
 }

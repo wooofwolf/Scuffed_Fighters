@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -8,6 +9,12 @@ public class GameManager : MonoBehaviour
 {
     // Singleton Pattern
     public static GameManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+        Instance = this;
+    }
 
     public enum GameState
     {
@@ -17,12 +24,15 @@ public class GameManager : MonoBehaviour
         IN_GAME
     }
 
-    public GameState CurrentGameState { get; set; }
+    public LobbyManager LobbyManager { get; private set; }
+    public RelayManager RelayManager { get; private set; }
+
+    public GameState CurrentGameState { get; set; } = GameState.SPLASH_SCREEN;
     public bool IsHost { get; set; }
 
-    private void Awake()
+    private void Start()
     {
-        DontDestroyOnLoad(gameObject);
-        Instance = this;
+        LobbyManager = gameObject.GetComponent<LobbyManager>();
+        RelayManager = gameObject.GetComponent<RelayManager>();
     }
 }

@@ -13,48 +13,37 @@ using UnityEngine.SceneManagement;
 public class GameplayManager : MonoBehaviour
 {
     private readonly GameManager _gameManager = GameManager.Instance;
-    private readonly UnityTransport _unityTransport;
-
-    private NetworkManager _networkManager;
 
     private void Awake()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    private async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        _networkManager = NetworkManager.Singleton;
-
         if (_gameManager.IsHost)
         {
-            StartHost();
+            string relayCode = await _gameManager.RelayManager.CreateRelay();
+            _gameManager.LobbyManager.SetRelayKey(relayCode);
         }
-        else _networkManager.StartClient();
+        else
+        {
+            StartCoroutine(TryJoiningRelay());
+        }
     }
 
-    private async void StartHost()
+    private IEnumerator TryJoiningRelay()
     {
-        Allocation a = await RelayService.Instance.CreateAllocationAsync(2);
-        var joinCode = await RelayService.Instance.GetJoinCodeAsync(a.AllocationId);
+        var delay = new WaitForSecondsRealtime(1);
+        string relayCode = "0";
 
-        _unityTransport.SetHostRelayData(a.RelayServer.IpV4, (ushort)a.RelayServer.Port, a.AllocationIdBytes, a.Key, a.ConnectionData);
-
-        try
+        while (relayCode == "0")
         {
-            UpdateLobbyOptions options = new UpdateLobbyOptions();
-            options.Data = new Dictionary<string, DataObject>()
-                {
-                    {
-                        "RelayJoinKey", new DataObject(
-                            visibility: DataObject.VisibilityOptions.Public,
-                            value: joinCode)
-                    }
-                };
+            relayCode = _gameManager.LobbyManager.GetRelayKey();
 
-            await LobbyService.Instance.UpdateLobbyAsync()
+            yield return delay;
         }
 
-        _networkManager.StartHost();
+        _gameManager.RelayManager.JoinRelay(relayCode);
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using TMPro;
 using Unity.Services.Authentication;
@@ -10,8 +11,7 @@ using UnityEngine;
 
 public class LobbyManager : MonoBehaviour
 {
-    [SerializeField] private TMP_InputField _codeInput;
-    [SerializeField] private LocalLobby _localLobby;
+    public Lobby CurrentLobby { get; private set; }
 
     private IEnumerator _heartbeatCoroutine;
     private IEnumerator _pollLobbyCoroutine;
@@ -19,20 +19,14 @@ public class LobbyManager : MonoBehaviour
     private readonly string _lobbyName = Guid.NewGuid().ToString();
     private readonly int _rateLimitGetLobby = 1;
 
-    private void Start()
-    {
-        // Auto host a lobby
-        HostLobby();
-    }
-
-    private async void HostLobby()
+    public async Task<Lobby> HostLobby()
     {
         try
         {
             CreateLobbyOptions lobbyOptions = new()
             {
                 IsPrivate = false,
-                Player = new (
+                Player = new(
                     id: AuthenticationService.Instance.PlayerId,
                     data: new Dictionary<string, PlayerDataObject>()
                     {
@@ -40,34 +34,34 @@ public class LobbyManager : MonoBehaviour
                             "Ready", new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Public,
                                 value: "false")
-                        }
+                        },
                     }),
-                Data = new Dictionary<string, DataObject>()
+                Data = new Dictionary<string, DataObject>
                 {
                     {
-                        "RelayJoinKey", new DataObject(
-                            visibility: DataObject.VisibilityOptions.Public,
-                            value: "")
+                        "RelayKey", new DataObject(DataObject.VisibilityOptions.Member, "0")
                     }
                 }
             };
 
-            Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(_lobbyName, 2, lobbyOptions);
+            CurrentLobby = await LobbyService.Instance.CreateLobbyAsync(_lobbyName, 2, lobbyOptions);
             Debug.Log("Lobby successfully created!");
 
-            _heartbeatCoroutine = HeartbeatLobbyCoroutine(lobby.Id, 15);
+            _heartbeatCoroutine = HeartbeatLobbyCoroutine(CurrentLobby.Id, 15);
             StartCoroutine(_heartbeatCoroutine);
             Debug.Log("Started heartbeat lobby coroutine.");
-
-            _localLobby.InitLobby(lobby);
 
             _pollLobbyCoroutine = PollLobbyCoroutine(_rateLimitGetLobby);
             StartCoroutine(_pollLobbyCoroutine);
             Debug.Log("Started poll lobby coroutine.");
+
+            return CurrentLobby;
         }
         catch (Exception e)
         {
             Debug.LogException(e);
+
+            return null;
         }
     }
 
@@ -82,14 +76,14 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    public async void JoinLobby()
+    public async Task<Lobby> JoinLobby(string lobbyCode)
     {
         try
         {
             // TODO: Check if player is owner of the lobby before deleting it, else leave lobby
 
             // Delete current lobby
-            await LobbyService.Instance.DeleteLobbyAsync(_localLobby.LobbyId);
+            await LobbyService.Instance.DeleteLobbyAsync(CurrentLobby.Id);
             Debug.Log("Current lobby deleted.");
 
             StopCoroutine(_heartbeatCoroutine);
@@ -110,10 +104,8 @@ public class LobbyManager : MonoBehaviour
                     })
             };
 
-            Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(_codeInput.text, lobbyOptions);
+            CurrentLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, lobbyOptions);
             Debug.Log("Lobby joined!");
-
-            _localLobby.InitLobby(lobby);
 
             StopCoroutine(_pollLobbyCoroutine);
             await Task.Delay(_rateLimitGetLobby * 1000);
@@ -121,10 +113,14 @@ public class LobbyManager : MonoBehaviour
             _pollLobbyCoroutine = PollLobbyCoroutine(_rateLimitGetLobby);
             StartCoroutine(_pollLobbyCoroutine);
             Debug.Log("Started poll lobby coroutine.");
+
+            return CurrentLobby;
         }
         catch (LobbyServiceException e)
         {
             Debug.LogError(e);
+
+            return null;
         }
     }
 
@@ -134,12 +130,12 @@ public class LobbyManager : MonoBehaviour
 
         while (true)
         {
-            var t = Task.Run(async () => await LobbyService.Instance.GetLobbyAsync(_localLobby.LobbyId));
+            var t = Task.Run(async () => await LobbyService.Instance.GetLobbyAsync(CurrentLobby.Id));
             yield return new WaitUntil(() => t.IsCompleted);
-            Debug.Log("Lobby task complete.");
+            Debug.Log("Lobby poll complete.");
 
-            Lobby updatedLobby = t.Result;
-            _localLobby.UpdateLobby(updatedLobby);
+            CurrentLobby = t.Result;
+
             yield return delay;
         }
     }
@@ -160,13 +156,42 @@ public class LobbyManager : MonoBehaviour
                 }
             };
 
-            await LobbyService.Instance.UpdatePlayerAsync(_localLobby.LobbyId, AuthenticationService.Instance.PlayerId, options);
-            _localLobby.GetReady();
+            await LobbyService.Instance.UpdatePlayerAsync(CurrentLobby.Id, AuthenticationService.Instance.PlayerId, options);
             Debug.Log("Player's ready state set to true.");
         }
         catch (LobbyServiceException e)
         { 
             Debug.LogError(e);
         }
+    }
+
+    public async void SetRelayKey(string relayCode)
+    {
+        try
+        {
+            UpdateLobbyOptions options = new()
+            {
+                Data = new Dictionary<string, DataObject>()
+                {
+                    {
+                        "RelayKey", new DataObject(
+                            visibility: DataObject.VisibilityOptions.Member,
+                            value: relayCode)
+                    }
+                }
+            };
+
+            await LobbyService.Instance.UpdateLobbyAsync(CurrentLobby.Id, options);
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.LogError(e);
+        }
+    }
+
+    public string GetRelayKey()
+    {
+        CurrentLobby.Data.TryGetValue("RelayKey", out var key);
+        return key.Value;
     }
 }
