@@ -188,7 +188,7 @@ ModelImporter:
       name: Light_Neutral
       takeName: Light_Neutral
       internalID: 0
-      firstFrame: 0
+      firstFrame: 12
       lastFrame: 39
       wrapMode: 0
       orientationOffsetY: 0
@@ -217,7 +217,7 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 1
+      - time: 0.85090905
         functionName: FinishAttack
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: 5f879e8b4e24cb24dbc63016acf9da8d,
