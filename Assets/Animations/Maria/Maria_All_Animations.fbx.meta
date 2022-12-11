@@ -209,7 +209,7 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.5616798
+      - time: 0.6614173
         functionName: AllowCombo
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: 5f879e8b4e24cb24dbc63016acf9da8d,
@@ -254,7 +254,7 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.74216974
+      - time: 0.7972878
         functionName: AllowCombo
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: 5f879e8b4e24cb24dbc63016acf9da8d,
@@ -262,7 +262,7 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 1
+      - time: 0.95013124
         functionName: FinishAttack
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: 5f879e8b4e24cb24dbc63016acf9da8d,
@@ -386,16 +386,16 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 1
-        functionName: FinishAttack
+      - time: 0.7686206
+        functionName: AllowCombo
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: 5f879e8b4e24cb24dbc63016acf9da8d,
           type: 3}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.54814816
-        functionName: AllowCombo
+      - time: 1
+        functionName: FinishAttack
         data: 
         objectReferenceParameter: {fileID: 11500000, guid: 5f879e8b4e24cb24dbc63016acf9da8d,
           type: 3}

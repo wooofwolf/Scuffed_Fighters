@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.Services.Authentication;
+using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerNetwork : NetworkBehaviour
 {
+
     [Header("Horizontal Movement")]
     [SerializeField] private float _movementSpeed = 1.0f;
     [SerializeField] private float _smoothInputSpeed = 0.2f;
@@ -38,15 +41,25 @@ public class PlayerNetwork : NetworkBehaviour
         _playerInputActions.Player.Light.performed += LightPerformed;
         _playerInputActions.Player.Heavy.performed += HeavyPerformed;
         _playerInputActions.Player.Heavy.canceled += HeavyCanceled;
+    }
 
-        if (_networkManager.IsHost)
+    [ServerRpc(RequireOwnership = false)]
+    private void InitPlayerServerRpc(bool isHost, ServerRpcParams serverRpcParams = default)
+    {
+        _networkManager.ConnectedClients.TryGetValue(serverRpcParams.Receive.SenderClientId, out NetworkClient client);
+        Transform player = client.PlayerObject.transform;
+        if (isHost)
         {
-            transform.SetPositionAndRotation(new Vector3(-2, 0, 0), Quaternion.Euler(0, 90, 0));
+            Debug.LogWarning("Setting Host pos for client " + serverRpcParams.Receive.SenderClientId);
+
+            player.SetPositionAndRotation(new Vector3(-2, 0, 0), Quaternion.Euler(0, 90, 0));
             _isFacingRight = true;
         }
         else
         {
-            transform.SetPositionAndRotation(new Vector3(2, 0, 0), Quaternion.Euler(0, -90, 0));
+            Debug.LogWarning("Setting Client pos for client " + serverRpcParams.Receive.SenderClientId);
+
+            player.SetPositionAndRotation(new Vector3(2, 0, 0), Quaternion.Euler(0, -90, 0));
             _isFacingRight = false;
         }
     }
