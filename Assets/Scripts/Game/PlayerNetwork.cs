@@ -8,7 +8,6 @@ using UnityEngine.InputSystem;
 
 public class PlayerNetwork : NetworkBehaviour
 {
-
     [Header("Horizontal Movement")]
     [SerializeField] private float _movementSpeed = 1.0f;
     [SerializeField] private float _smoothInputSpeed = 0.2f;
@@ -25,14 +24,40 @@ public class PlayerNetwork : NetworkBehaviour
     private bool _isAttacking = false;
     private bool _allowCombo = false;
 
-    private void Start()
+    private int _healthMax = 100;
+    private int _health = 100;
+
+    private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody>();
         _animator = GetComponent<Animator>();
 
         _networkManager = NetworkManager.Singleton;
 
+        if (GameObject.Find("Healthbar1").GetComponent<Healthbar>().Owner != this)
+        {
+            GameObject.Find("Healthbar1").GetComponent<Healthbar>().Owner = this;
+        }
+        else
+        {
+            GameObject.Find("Healthbar2").GetComponent<Healthbar>().Owner = this;
+        }
+    }
+
+    private void Start()
+    {
         if (!IsOwner) return;
+
+        if (IsHost)
+        {
+            transform.SetPositionAndRotation(new Vector3(-2, 0, 0), Quaternion.Euler(0, 90, 0));
+            _isFacingRight = true;
+        }
+        else
+        {
+            transform.SetPositionAndRotation(new Vector3(2, 0, 0), Quaternion.Euler(0, -90, 0));
+            _isFacingRight = false;
+        }
 
         _playerInputActions = new ();
         _playerInputActions.Enable();
@@ -141,5 +166,18 @@ public class PlayerNetwork : NetworkBehaviour
     {
         _isAttacking = false;
         _allowCombo = false;
+    }
+
+    public float GetHealthPercent()
+    {
+        Debug.Log(_health + " / " + _healthMax + " = " + _health / _healthMax);
+        return ((float)_health / _healthMax);
+    }
+
+    [ClientRpc]
+    public void DamageClientRPC(int damage)
+    {
+        _health -= damage;
+        Debug.Log("HP: " + _health);
     }
 }
