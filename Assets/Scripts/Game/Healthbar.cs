@@ -14,5 +14,10 @@ public class Healthbar : MonoBehaviour
         _slider = GetComponent<Slider>();
     }
 
+    private void Update()
+    {
+        if (!Owner) return;
 
+        _slider.value = Owner.GetCurrentHealth();
+    }
 }
