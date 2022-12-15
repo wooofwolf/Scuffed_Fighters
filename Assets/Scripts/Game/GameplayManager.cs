@@ -13,6 +13,8 @@ using UnityEngine.SceneManagement;
 
 public class GameplayManager : MonoBehaviour
 {
+    public CameraManager CameraManager { get; private set; }
+
     private readonly GameManager _gameManager = GameManager.Instance;
 
     private void Awake()
@@ -22,6 +24,8 @@ public class GameplayManager : MonoBehaviour
 
     private async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        CameraManager = GameObject.Find("CM vcam1").GetComponent<CameraManager>();
+
         if (_gameManager.IsHost)
         {
             string relayCode = await _gameManager.RelayManager.CreateRelay();

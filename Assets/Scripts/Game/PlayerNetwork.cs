@@ -16,6 +16,7 @@ public class PlayerNetwork : NetworkBehaviour
     private Animator _animator;
     private NetworkManager _networkManager;
     private PlayerInputActions _playerInputActions;
+    private GameplayManager _gameplayManager;
 
     private float _normalizedInputX;
     private float _currentInputX;
@@ -32,6 +33,8 @@ public class PlayerNetwork : NetworkBehaviour
 
     private void Start()
     {
+        _gameplayManager = GameObject.Find("GameplayManager").GetComponent<GameplayManager>();
+
         _rigidbody = GetComponent<Rigidbody>();
         _animator = GetComponent<Animator>();
 
@@ -45,6 +48,8 @@ public class PlayerNetwork : NetworkBehaviour
         {
             GameObject.Find("Healthbar2").GetComponent<Healthbar>().Owner = this;
         }
+
+        _gameplayManager.CameraManager.AddLookAtTarget(transform);
 
         if (!IsOwner) return;
 
