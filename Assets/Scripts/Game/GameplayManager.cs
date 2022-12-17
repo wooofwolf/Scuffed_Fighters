@@ -59,12 +59,12 @@ public class GameplayManager : MonoBehaviour
         _gameManager.RelayManager.JoinRelay(relayCode);
     }
 
-    public void EndGame(PlayerNetworkBad winner)
+    public void EndGame(PlayerNetwork winner)
     {
         _winloseGui.gameObject.SetActive(true);
 
         StringBuilder sb = new(" wins!", 20);
-        sb.Insert(0, winner.GetCharacter());
+        //sb.Insert(0, winner.GetCharacter());
         _winloseText.SetText(sb.ToString());
     }
 }

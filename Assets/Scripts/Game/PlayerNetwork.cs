@@ -14,6 +14,7 @@ public class PlayerNetwork : NetworkBehaviour
     private PlayerInputActions _actions;
     private Rigidbody _rb;
     private Animator _animator;
+    private Healthbar _healthbar;
 
     private readonly NetworkVariable<float> _health = new(100.0f,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -32,6 +33,12 @@ public class PlayerNetwork : NetworkBehaviour
     private readonly NetworkVariable<bool> _allowHits = new(true,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private readonly NetworkVariable<bool> _isHit = new(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<bool> _canBlock = new(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<bool> _isBlocking = new(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<bool> _isDead = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     private bool _isOwner;
@@ -52,9 +59,27 @@ public class PlayerNetwork : NetworkBehaviour
     {
         _isOwner = IsOwner;
 
+        InitHealthbars(IsHost, _isOwner);
+
         if (!_isOwner) return;
 
         InitPlayerServerRpc(IsHost);
+    }
+
+    private void InitHealthbars(bool isHost, bool isOwner)
+    {
+        Healthbar[] healthbars = FindObjectsOfType<Healthbar>();
+
+        if (isHost)
+        {
+            if (isOwner) _healthbar = healthbars[1];
+            else _healthbar = healthbars[0];
+        }
+        else
+        {
+            if (isOwner) _healthbar = healthbars[0];
+            else _healthbar = healthbars[1];
+        }
     }
 
     [ServerRpc]
@@ -62,7 +87,6 @@ public class PlayerNetwork : NetworkBehaviour
     {
         InitPlayerPosClientRpc(isHost);
         InitCameraClientRpc();
-        InitHealthbarClientRpc(isHost);
     }
 
     [ClientRpc]
@@ -86,15 +110,6 @@ public class PlayerNetwork : NetworkBehaviour
         _gameplayManager.CameraManager.TargetAllPlayers();
     }
 
-    [ClientRpc]
-    private void InitHealthbarClientRpc(bool isHost)
-    {
-        Healthbar[] healthbars = FindObjectsOfType<Healthbar>();
-
-        if (isHost) healthbars[1].Owner = this;
-        else healthbars[0].Owner = this;
-    }
-
     private void Update()
     {
         if (!_isOwner) return;
@@ -108,6 +123,8 @@ public class PlayerNetwork : NetworkBehaviour
         if (_isCrouching.Value) return;
         if (_isAttacking.Value) return;
         if (_isHit.Value) return;
+        if (_isBlocking.Value) return;
+        if (_isDead.Value) return;
 
         _currentInputX.Value = Mathf.Lerp(_currentInputX.Value, _normalizedInputX.Value, _smoothInputSpeed);
         _rb.MovePosition(transform.position + _movementSpeed * Time.deltaTime * new Vector3(_currentInputX.Value, 0, 0));
@@ -115,10 +132,14 @@ public class PlayerNetwork : NetworkBehaviour
         if (_isFacingRight.Value)
         {
             _animator.SetFloat("xInput", _currentInputX.Value);
+            if (_currentInputX.Value < -0.1f) _canBlock.Value = true;
+            else if (_canBlock.Value) _canBlock.Value = false;
         }
         else
         {
             _animator.SetFloat("xInput", -_currentInputX.Value);
+            if (_currentInputX.Value > 0.1f) _canBlock.Value = true;
+            else if (_canBlock.Value) _canBlock.Value = false;
         }
     }
 
@@ -135,6 +156,7 @@ public class PlayerNetwork : NetworkBehaviour
         if (!_isOwner) return;
         if (_isAttacking.Value && !_allowCombo.Value) return;
         if (_isHit.Value) return;
+        if (_isBlocking.Value) return;
 
         _isAttacking.Value = true;
         _allowCombo.Value = false;
@@ -174,32 +196,45 @@ public class PlayerNetwork : NetworkBehaviour
         _allowCombo.Value = false;
     }
 
-    public float GetCurrentHealth()
-    {
-        return _health.Value;
-    }
-
     public void GetHit(float damage)
     {
         if (!_isOwner) return;
         if (!_allowHits.Value) return;
+        if (_isDead.Value) return;
 
-        DamagePlayerServerRpc(damage);
-    }    
+        if (_canBlock.Value)
+        {
+            _isBlocking.Value = true;
+            _canBlock.Value = false;
+            PlayAnimationClientRpc("Blocking", 0.05f);
+            return;
+        }
 
-    [ServerRpc]
-    public void DamagePlayerServerRpc(float damage)
-    {
-        DamagePlayerClientRpc(damage);
-        PlayAnimationClientRpc("Impact", 0.05f);
-    }
-
-    [ClientRpc]
-    private void DamagePlayerClientRpc(float damage)
-    {
         _health.Value -= damage;
         _isHit.Value = true;
         _isAttacking.Value = false;
+        _isBlocking.Value = false;
+
+        UpdateHealthbarServerRpc(_health.Value);
+
+        if (_health.Value <= 0.0f)
+        {
+            _isDead.Value = true;
+            PlayAnimationServerRpc("Death", 0.05f);
+        }
+        else PlayAnimationServerRpc("Impact", 0.05f);
+    }
+
+    [ServerRpc]
+    private void UpdateHealthbarServerRpc(float updatedHealth)
+    {
+        UpdateHealthbarClientRpc(updatedHealth);
+    }
+
+    [ClientRpc]
+    private void UpdateHealthbarClientRpc(float updatedHealth)
+    {
+        _healthbar.UpdateHealthbar(updatedHealth);
     }
 
     public void AllowHits()
@@ -221,5 +256,12 @@ public class PlayerNetwork : NetworkBehaviour
         if (!_isOwner) return;
 
         _isHit.Value = false;
+    }
+
+    public void StopBlocking()
+    {
+        if (!_isOwner) return;
+
+        _isBlocking.Value = false;
     }
 }

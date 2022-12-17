@@ -5,8 +5,6 @@ using UnityEngine.UI;
 
 public class Healthbar : MonoBehaviour
 {
-    public PlayerNetwork Owner { get; set; }
-
     private Slider _slider;
 
     private void Awake()
@@ -14,10 +12,8 @@ public class Healthbar : MonoBehaviour
         _slider = GetComponent<Slider>();
     }
 
-    private void Update()
+    public void UpdateHealthbar(float updatedHp)
     {
-        if (!Owner) return;
-
-        _slider.value = Owner.GetCurrentHealth();
+        _slider.value = updatedHp;
     }
 }
