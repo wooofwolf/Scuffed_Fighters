@@ -1,6 +1,7 @@
 using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Services.Lobbies.Models;
 using UnityEngine;
 
 public class CameraManager : MonoBehaviour
@@ -8,19 +9,26 @@ public class CameraManager : MonoBehaviour
     [SerializeField] private CinemachineTargetGroup _group;
 
     private CinemachineVirtualCamera _cam;
+    private readonly List<Transform> _transforms = new();
 
     private void Start()
     {
         _cam = GetComponent<CinemachineVirtualCamera>();
     }
 
-    public void AddLookAtTarget(Transform transform)
+    public void TargetAllPlayers()
     {
-        _group.AddMember(transform, 1, 1);
+        foreach (PlayerNetwork player in FindObjectsOfType<PlayerNetwork>())
+        {
+            TryAddMember(player.transform);
+        }
     }
 
-    public void SetFollow(Transform transform)
+    private void TryAddMember(Transform transform)
     {
-        _cam.Follow = transform;
+        if (_transforms.Contains(transform)) return;
+
+        _group.AddMember(transform, 1, 1);
+        _transforms.Add(transform);
     }
 }

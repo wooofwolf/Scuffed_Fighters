@@ -78,12 +78,12 @@ GameObject:
   - component: {fileID: 5388482074001856090}
   - component: {fileID: 4563073714159467727}
   - component: {fileID: 866007410852063616}
-  - component: {fileID: 3355026203511013722}
   - component: {fileID: 4597583236239772479}
   - component: {fileID: 8901084918333721066}
   - component: {fileID: 420349468572051307}
   - component: {fileID: 5044144302970319730}
   - component: {fileID: 5738909978467922014}
+  - component: {fileID: 4526946802503016061}
   m_Layer: 0
   m_Name: Maria
   m_TagString: Player
@@ -175,20 +175,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 120
   m_CollisionDetection: 0
---- !u!114 &3355026203511013722
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 243954469101423062}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f879e8b4e24cb24dbc63016acf9da8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _movementSpeed: 1
-  _smoothInputSpeed: 0.3
 --- !u!114 &4597583236239772479
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -271,6 +257,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4526946802503016061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 243954469101423062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ee901ebfc819a440b4bb1f711d5ef76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &565432156235363714

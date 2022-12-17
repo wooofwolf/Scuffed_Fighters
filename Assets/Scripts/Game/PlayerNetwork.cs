@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
-using Unity.Services.Authentication;
-using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -12,236 +10,216 @@ public class PlayerNetwork : NetworkBehaviour
     [SerializeField] private float _movementSpeed = 1.0f;
     [SerializeField] private float _smoothInputSpeed = 0.2f;
 
-    private Rigidbody _rigidbody;
-    private Animator _animator;
-    private NetworkManager _networkManager;
-    private PlayerInputActions _playerInputActions;
     private GameplayManager _gameplayManager;
+    private PlayerInputActions _actions;
+    private Rigidbody _rb;
+    private Animator _animator;
 
-    private float _normalizedInputX;
-    private float _currentInputX;
-    private bool _isFacingRight;
-    private bool _isCrouching = false;
-    private bool _isAttacking = false;
-    private bool _allowCombo = false;
-    private bool _allowHits = true;
-    private bool _isHit = false;
-    private bool _canBlock = false;
-    private bool _isBlocking = false;
+    private readonly NetworkVariable<float> _health = new(100.0f,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<float> _normalizedInputX = new(default,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<float> _currentInputX = new(default,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<bool> _isFacingRight = new(default,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<bool> _isCrouching = new(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<bool> _isAttacking = new(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<bool> _allowCombo = new(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<bool> _allowHits = new(true,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<bool> _isHit = new(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
-    private float _health = 100;
+    private bool _isOwner;
 
-    private void Start()
+    private void Awake()
     {
         _gameplayManager = GameObject.Find("GameplayManager").GetComponent<GameplayManager>();
-
-        _rigidbody = GetComponent<Rigidbody>();
+        _rb = GetComponent<Rigidbody>();
         _animator = GetComponent<Animator>();
 
-        _networkManager = NetworkManager.Singleton;
+        _actions = new();
+        _actions.Enable();
+        _actions.Player.Crouch.performed += CrouchPerformed;
+        _actions.Player.Light.performed += LightPerformed;
+    }
 
-        if (!GameObject.Find("Healthbar1").GetComponent<Healthbar>().Owner)
-        {
-            GameObject.Find("Healthbar1").GetComponent<Healthbar>().Owner = this;
-        }
-        else
-        {
-            GameObject.Find("Healthbar2").GetComponent<Healthbar>().Owner = this;
-        }
+    public override void OnNetworkSpawn()
+    {
+        _isOwner = IsOwner;
 
-        _gameplayManager.CameraManager.AddLookAtTarget(transform);
+        if (!_isOwner) return;
 
-        if (!IsOwner) return;
+        InitPlayerServerRpc(IsHost);
+    }
 
-        if (IsHost)
+    [ServerRpc]
+    private void InitPlayerServerRpc(bool isHost)
+    {
+        InitPlayerPosClientRpc(isHost);
+        InitCameraClientRpc();
+        InitHealthbarClientRpc(isHost);
+    }
+
+    [ClientRpc]
+    private void InitPlayerPosClientRpc(bool isHost)
+    {
+        if (isHost)
         {
             transform.SetPositionAndRotation(new Vector3(-2, 0, 0), Quaternion.Euler(0, 90, 0));
-            _isFacingRight = true;
+            _isFacingRight.Value = true;
         }
         else
         {
             transform.SetPositionAndRotation(new Vector3(2, 0, 0), Quaternion.Euler(0, -90, 0));
-            _isFacingRight = false;
+            _isFacingRight.Value = false;
         }
-
-        _playerInputActions = new ();
-        _playerInputActions.Enable();
-        _playerInputActions.Player.Jump.performed += JumpPerformed;
-        _playerInputActions.Player.Crouch.performed += CrouchPerformed;
-        _playerInputActions.Player.Light.performed += LightPerformed;
-        _playerInputActions.Player.Heavy.performed += HeavyPerformed;
-        _playerInputActions.Player.Heavy.canceled += HeavyCanceled;
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    private void InitPlayerServerRpc(bool isHost, ServerRpcParams serverRpcParams = default)
+    [ClientRpc]
+    private void InitCameraClientRpc()
     {
-        _networkManager.ConnectedClients.TryGetValue(serverRpcParams.Receive.SenderClientId, out NetworkClient client);
-        Transform player = client.PlayerObject.transform;
-        if (isHost)
-        {
-            Debug.LogWarning("Setting Host pos for client " + serverRpcParams.Receive.SenderClientId);
+        _gameplayManager.CameraManager.TargetAllPlayers();
+    }
 
-            player.SetPositionAndRotation(new Vector3(-2, 0, 0), Quaternion.Euler(0, 90, 0));
-            _isFacingRight = true;
-        }
-        else
-        {
-            Debug.LogWarning("Setting Client pos for client " + serverRpcParams.Receive.SenderClientId);
+    [ClientRpc]
+    private void InitHealthbarClientRpc(bool isHost)
+    {
+        Healthbar[] healthbars = FindObjectsOfType<Healthbar>();
 
-            player.SetPositionAndRotation(new Vector3(2, 0, 0), Quaternion.Euler(0, -90, 0));
-            _isFacingRight = false;
-        }
+        if (isHost) healthbars[1].Owner = this;
+        else healthbars[0].Owner = this;
     }
 
     private void Update()
     {
-        if (!IsOwner) return;
+        if (!_isOwner) return;
 
-        _normalizedInputX = _playerInputActions.Player.Movement.ReadValue<float>();
-
-        if (Input.GetKey(KeyCode.Y))
-            DamageClientRPC(10);
+        _normalizedInputX.Value = _actions.Player.Movement.ReadValue<float>();
     }
 
     private void FixedUpdate()
     {
-        if (!IsOwner) return;
-        if (_isAttacking) return;
-        if (_isCrouching) return;
-        if (_isBlocking) return;
-        if (_isHit) return;
+        if (!_isOwner) return;
+        if (_isCrouching.Value) return;
+        if (_isAttacking.Value) return;
+        if (_isHit.Value) return;
 
-        _currentInputX = Mathf.Lerp(_currentInputX, _normalizedInputX, _smoothInputSpeed);
-        _rigidbody.MovePosition(transform.position + _movementSpeed * Time.deltaTime * new Vector3(_currentInputX, 0, 0));
-
-        if (_isFacingRight)
+        _currentInputX.Value = Mathf.Lerp(_currentInputX.Value, _normalizedInputX.Value, _smoothInputSpeed);
+        _rb.MovePosition(transform.position + _movementSpeed * Time.deltaTime * new Vector3(_currentInputX.Value, 0, 0));
+        
+        if (_isFacingRight.Value)
         {
-            _animator.SetFloat("xInput", _currentInputX);
-            if (_currentInputX < -0.1) SetCanBlockClientRPC(true);
-            else if (_canBlock) SetCanBlockClientRPC(false);
+            _animator.SetFloat("xInput", _currentInputX.Value);
         }
         else
         {
-            _animator.SetFloat("xInput", -_currentInputX);
-            if (_currentInputX > 0.1) SetCanBlockClientRPC(true);
-            else if (_canBlock) SetCanBlockClientRPC(false);
+            _animator.SetFloat("xInput", -_currentInputX.Value);
         }
-    }
-
-    private void JumpPerformed(InputAction.CallbackContext context)
-    {
-        Debug.Log("Jump");
     }
 
     private void CrouchPerformed(InputAction.CallbackContext context)
     {
-        _isCrouching = !_isCrouching;
-        _animator.SetBool("isCrouching", _isCrouching);
+        if (!_isOwner) return;
+
+        _isCrouching.Value = !_isCrouching.Value;
+        _animator.SetBool("isCrouching", _isCrouching.Value);
     }
 
     private void LightPerformed(InputAction.CallbackContext context)
     {
-        if (_isBlocking) return;
-        if (_isHit) return;
-        if (_isAttacking && !_allowCombo) return;
+        if (!_isOwner) return;
+        if (_isAttacking.Value && !_allowCombo.Value) return;
+        if (_isHit.Value) return;
 
-        _isAttacking = true;
-        _allowCombo = false;
+        _isAttacking.Value = true;
+        _allowCombo.Value = false;
 
-        if (_isCrouching) _animator.CrossFadeInFixedTime("Light_Crouch", 0.05f);
+        if (_isCrouching.Value) PlayAnimationServerRpc("Light_Crouch", 0.05f);
         else
         {
-            if (_normalizedInputX == 0) _animator.CrossFadeInFixedTime("Light_Neutral", 0.05f);
-            else _animator.CrossFadeInFixedTime("Light_Forward", 0.05f);
+            if (_normalizedInputX.Value == 0) PlayAnimationServerRpc("Light_Neutral", 0.05f);
+            else PlayAnimationServerRpc("Light_Forward", 0.05f);
         }
     }
 
-    private void HeavyPerformed(InputAction.CallbackContext context)
+    [ServerRpc]
+    private void PlayAnimationServerRpc(string animationName, float transitionDuration)
     {
-        if (_isBlocking) return;
-        if (_isHit) return;
-        if (_isAttacking && !_allowCombo) return;
-
-        _isAttacking = true;
-        _allowCombo = false;
-
-        if (_isCrouching)
-        {
-            // Heavy crouch attack?
-        }
-        else
-        {
-            if (_normalizedInputX == 0) _animator.CrossFadeInFixedTime("Heavy_Neutral_Charge", 0.05f);
-        }
+        PlayAnimationClientRpc(animationName, transitionDuration);
     }
 
-    private void HeavyCanceled(InputAction.CallbackContext context)
+    [ClientRpc]
+    private void PlayAnimationClientRpc(string animationName, float transitionDuration)
     {
-        if (_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name == "Heavy_Neutral_Charge") _animator.CrossFadeInFixedTime("Heavy_Neutral_Attack", 0.05f);
+        _animator.CrossFadeInFixedTime(animationName, transitionDuration);
     }
 
     public void AllowCombo()
     {
-        _allowCombo = true;
+        if (!_isOwner) return;
+
+        _allowCombo.Value = true;
     }
 
     public void FinishAttack()
     {
-        _isAttacking = false;
-        _allowCombo = false;
+        if (!_isOwner) return;
+
+        _isAttacking.Value = false;
+        _allowCombo.Value = false;
     }
 
     public float GetCurrentHealth()
     {
-        return _health;
+        return _health.Value;
+    }
+
+    public void GetHit(float damage)
+    {
+        if (!_isOwner) return;
+        if (!_allowHits.Value) return;
+
+        DamagePlayerServerRpc(damage);
+    }    
+
+    [ServerRpc]
+    public void DamagePlayerServerRpc(float damage)
+    {
+        DamagePlayerClientRpc(damage);
+        PlayAnimationClientRpc("Impact", 0.05f);
     }
 
     [ClientRpc]
-    public void SetCanBlockClientRPC(bool canBlock)
+    private void DamagePlayerClientRpc(float damage)
     {
-        _canBlock = canBlock;
-    }
-
-    [ClientRpc]
-    public void DamageClientRPC(float damage)
-    {
-        if (!_allowHits) return;
-
-        if (_canBlock)
-        {
-            _animator.CrossFadeInFixedTime("Blocking", 0.05f);
-            _isBlocking = true;
-            _canBlock = false;
-            return;
-        }
-
-        _animator.CrossFadeInFixedTime("Impact", 0.05f);
-
-        _health -= damage;
-        _isHit = true;
-        _isAttacking = false;
-        _isBlocking = false;
-        Debug.Log("HP: " + _health);
+        _health.Value -= damage;
+        _isHit.Value = true;
+        _isAttacking.Value = false;
     }
 
     public void AllowHits()
     {
-        _allowHits = true;
+        if (!_isOwner) return;
+
+        _allowHits.Value = true;
     }
 
     public void StopHits()
     {
-        _allowHits = false;
-    }
+        if (!_isOwner) return;
 
-    public void StopBlocking()
-    {
-        _isBlocking = false;
+        _allowHits.Value = false;
     }
 
     public void ResetHit()
     {
-        _isHit = false;
+        if (!_isOwner) return;
+
+        _isHit.Value = false;
     }
 }

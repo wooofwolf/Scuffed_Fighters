@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerHurtbox : MonoBehaviour
+public class PlayerHurtbox : NetworkBehaviour
 {
     [SerializeField] private float _damageModifier = 1.0f;
 
@@ -15,9 +16,9 @@ public class PlayerHurtbox : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        PlayerHitbox hitbox = other.GetComponent<PlayerHitbox>();
+        if (!IsOwner) return;
 
-        Debug.Log("Player gets damaged");
-        _playerNetwork.DamageClientRPC(hitbox.GetDamage() * _damageModifier);
+        PlayerHitbox hitbox = other.GetComponent<PlayerHitbox>();
+        _playerNetwork.GetHit(hitbox.GetDamage() * _damageModifier);
     }
 }

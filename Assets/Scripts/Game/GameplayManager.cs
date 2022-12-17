@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
+using TMPro;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Lobbies;
@@ -13,6 +15,9 @@ using UnityEngine.SceneManagement;
 
 public class GameplayManager : MonoBehaviour
 {
+    [SerializeField] private Transform _winloseGui;
+    [SerializeField] private TextMeshProUGUI _winloseText;
+
     public CameraManager CameraManager { get; private set; }
 
     private readonly GameManager _gameManager = GameManager.Instance;
@@ -24,6 +29,8 @@ public class GameplayManager : MonoBehaviour
 
     private async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        _winloseGui.gameObject.SetActive(false);
+
         CameraManager = GameObject.Find("CM vcam1").GetComponent<CameraManager>();
 
         if (_gameManager.IsHost)
@@ -50,5 +57,14 @@ public class GameplayManager : MonoBehaviour
         }
 
         _gameManager.RelayManager.JoinRelay(relayCode);
+    }
+
+    public void EndGame(PlayerNetworkBad winner)
+    {
+        _winloseGui.gameObject.SetActive(true);
+
+        StringBuilder sb = new(" wins!", 20);
+        sb.Insert(0, winner.GetCharacter());
+        _winloseText.SetText(sb.ToString());
     }
 }
