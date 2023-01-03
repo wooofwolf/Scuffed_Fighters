@@ -16,6 +16,9 @@ public class LocalLobby : MonoBehaviour
     [SerializeField] private Button _readyButtonUI;
     [SerializeField] private TextMeshProUGUI _playersReadyUI;
     [SerializeField] private TMP_InputField _codeInput;
+    [SerializeField] private Image _playerOneImage;
+    [SerializeField] private Image _playerTwoImage;
+    [SerializeField] private List<Sprite> _spriteList;
 
     private const int MAX_PLAYER_COUNT = 2;
 
@@ -110,6 +113,18 @@ public class LocalLobby : MonoBehaviour
         else _readyButtonUI.gameObject.SetActive(true);
         Debug.Log("Ready button updated!");
 
+        if (_playerOneChar != 0)
+        {
+            _playerOneImage.color = new Color(255, 255, 255, 255);
+            _playerOneImage.sprite = _spriteList[_playerOneChar - 1];
+        }
+        if (_playerTwoChar != 0)
+        {
+            _playerTwoImage.color = new Color(255, 255, 255, 255);
+            _playerTwoImage.sprite = _spriteList[_playerTwoChar - 1];
+        }
+        Debug.Log("Player characters updated!");
+
         sb = new("/ 2", 5);
         sb.Insert(0, _playersReady + " ");
         _playersReadyUI.SetText(sb);
@@ -120,14 +135,15 @@ public class LocalLobby : MonoBehaviour
 
     public void GetReady()
     {
+        if (AuthenticationService.Instance.PlayerId == _hostId && _playerOneChar == 0) return;
+        else if (AuthenticationService.Instance.PlayerId != _hostId && _playerTwoChar == 0) return;
+
         _gameManager.LobbyManager.GetReady();
         _isPlayerReady = true;
     }
 
     public void ChangeCharacter(int charId)
     {
-        Debug.Log("Changing chaarcter");
-
         _gameManager.LobbyManager.ChangeCharacter(charId);
 
         if (AuthenticationService.Instance.PlayerId == _hostId)
@@ -138,6 +154,8 @@ public class LocalLobby : MonoBehaviour
         {
             _playerTwoChar = charId;
         }
+
+        UpdateGUI();
     }
 
     private IEnumerator Countdown(float duration)
@@ -157,6 +175,8 @@ public class LocalLobby : MonoBehaviour
 
         _gameManager.CurrentGameState = GameManager.GameState.IN_GAME;
         _gameManager.IsHost = AuthenticationService.Instance.PlayerId == _hostId;
+        _gameManager.CharacterOne = _playerOneChar;
+        _gameManager.CharacterTwo = _playerTwoChar;
         SceneManager.LoadSceneAsync(2);
     }
 }

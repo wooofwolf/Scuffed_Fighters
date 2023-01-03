@@ -30,6 +30,9 @@ public class GameManager : MonoBehaviour
     public GameState CurrentGameState { get; set; } = GameState.SPLASH_SCREEN;
     public bool IsHost { get; set; }
 
+    public int CharacterOne { get; set; }
+    public int CharacterTwo { get; set; }
+
     private void Start()
     {
         LobbyManager = gameObject.GetComponent<LobbyManager>();

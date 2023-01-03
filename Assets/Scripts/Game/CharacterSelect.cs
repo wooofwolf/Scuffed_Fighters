@@ -8,6 +8,7 @@ public class CharacterSelect : MonoBehaviour
 {
     [SerializeField] private List<CharacterCell> _characterCells = new();
     [SerializeField] private GameObject _characterCellPrefab;
+    [SerializeField] private LocalLobby _localLobby;
 
     private void Start()
     {
@@ -33,5 +34,8 @@ public class CharacterSelect : MonoBehaviour
 
         characterImage.GetComponent<RectTransform>().pivot = uiPivot;
         characterImage.GetComponent<RectTransform>().sizeDelta *= characterCell.Scale;
+
+        Button button = charCell.GetComponent<Button>();
+        button.onClick.AddListener(() => _localLobby.ChangeCharacter(characterCell.CharacterId));
     }
 }
