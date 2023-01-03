@@ -6,6 +6,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Character Cell", menuName = "Character Cell")]
 public class CharacterCell : ScriptableObject
 {
+    public int CharacterId;
     public string CharacterName;
     public Sprite CharacterSprite;
     public float Scale = 1;

@@ -35,6 +35,11 @@ public class LobbyManager : MonoBehaviour
                                 visibility: PlayerDataObject.VisibilityOptions.Public,
                                 value: "false")
                         },
+                        {
+                            "Character", new PlayerDataObject(
+                                visibility: PlayerDataObject.VisibilityOptions.Public,
+                                value: "0")
+                        }
                     }),
                 Data = new Dictionary<string, DataObject>
                 {
@@ -100,6 +105,11 @@ public class LobbyManager : MonoBehaviour
                             "Ready", new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Public,
                                 value: "false")
+                        },
+                        {
+                            "Character", new PlayerDataObject(
+                                visibility: PlayerDataObject.VisibilityOptions.Public,
+                                value: "0")
                         }
                     })
             };
@@ -161,6 +171,31 @@ public class LobbyManager : MonoBehaviour
         }
         catch (LobbyServiceException e)
         { 
+            Debug.LogError(e);
+        }
+    }
+
+    public async void ChangeCharacter(int charId)
+    {
+        try
+        {
+            UpdatePlayerOptions options = new()
+            {
+                Data = new Dictionary<string, PlayerDataObject>()
+                {
+                    {
+                        "Character", new PlayerDataObject(
+                            visibility: PlayerDataObject.VisibilityOptions.Public,
+                            value: charId.ToString())
+                    }
+                }
+            };
+
+            await LobbyService.Instance.UpdatePlayerAsync(CurrentLobby.Id, AuthenticationService.Instance.PlayerId, options);
+            Debug.Log("Player's character updated.");
+        }
+        catch (LobbyServiceException e)
+        {
             Debug.LogError(e);
         }
     }

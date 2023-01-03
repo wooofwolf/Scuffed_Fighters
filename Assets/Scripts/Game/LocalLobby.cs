@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using Unity.Services.Authentication;
+using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -27,6 +28,8 @@ public class LocalLobby : MonoBehaviour
     private int _availableSlots;
     private bool _isPlayerReady;
     private int _playersReady;
+    private int _playerOneChar = 0;
+    private int _playerTwoChar = 0;
 
     private void Start()
     {
@@ -45,7 +48,7 @@ public class LocalLobby : MonoBehaviour
             if (_currentLobby.LobbyCode != _lobbyCode) _lobbyCode = _currentLobby.LobbyCode;
             if (_currentLobby.HostId != _hostId) _hostId = _currentLobby.HostId;
             if (_currentLobby.AvailableSlots != _availableSlots) _availableSlots = _currentLobby.AvailableSlots;
-
+            
             _playersReady = 0;
             foreach (Player p in _currentLobby.Players)
             {
@@ -54,6 +57,8 @@ public class LocalLobby : MonoBehaviour
                 {
                     ++_playersReady;
                 }
+
+                GetCharacter(p);
             }
 
             UpdateGUI();
@@ -65,6 +70,22 @@ public class LocalLobby : MonoBehaviour
             }
 
             Debug.Log("Lobby updated.");
+        }
+    }
+
+    private void GetCharacter(Player p)
+    {
+        // Ignore your character because you already know it
+        if (p.Id == AuthenticationService.Instance.PlayerId) return;
+
+        p.Data.TryGetValue("Character", out var playerChar);
+        if (p.Id == _hostId)    // Host's character
+        {
+            if (_playerOneChar != int.Parse(playerChar.Value)) _playerOneChar = int.Parse(playerChar.Value);
+        }
+        else
+        {
+            if (_playerTwoChar != int.Parse(playerChar.Value)) _playerTwoChar = int.Parse(playerChar.Value);
         }
     }
 
@@ -101,6 +122,22 @@ public class LocalLobby : MonoBehaviour
     {
         _gameManager.LobbyManager.GetReady();
         _isPlayerReady = true;
+    }
+
+    public void ChangeCharacter(int charId)
+    {
+        Debug.Log("Changing chaarcter");
+
+        _gameManager.LobbyManager.ChangeCharacter(charId);
+
+        if (AuthenticationService.Instance.PlayerId == _hostId)
+        {
+            _playerOneChar = charId;
+        }
+        else
+        {
+            _playerTwoChar = charId;
+        }
     }
 
     private IEnumerator Countdown(float duration)

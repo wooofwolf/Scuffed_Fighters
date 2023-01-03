@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56347c403f3554743baf779d6f8e50f0, type: 3}
   m_Name: Maria
   m_EditorClassIdentifier: 
+  CharacterId: 1
   CharacterName: MARIA
   CharacterSprite: {fileID: 21300000, guid: c471fe122aff10d48aadf0f4466332b4, type: 3}
   Scale: 2.5

@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class CharacterSelect : MonoBehaviour
 {
     [SerializeField] private List<CharacterCell> _characterCells = new();
-    [SerializeField] private GameObject characterCellPrefab;
+    [SerializeField] private GameObject _characterCellPrefab;
 
     private void Start()
     {
@@ -19,7 +19,7 @@ public class CharacterSelect : MonoBehaviour
 
     private void SpawnCharacterCell(CharacterCell characterCell)
     {
-        GameObject charCell = Instantiate(characterCellPrefab, transform);
+        GameObject charCell = Instantiate(_characterCellPrefab, transform);
 
         Image characterImage = charCell.transform.Find("CharacterImage").GetComponent<Image>();
         TextMeshProUGUI name = charCell.transform.Find("NameImage").Find("Name").GetComponent<TextMeshProUGUI>();
