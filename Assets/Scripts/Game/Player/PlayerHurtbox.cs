@@ -17,6 +17,12 @@ public class PlayerHurtbox : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         PlayerHitbox hitbox = other.GetComponent<PlayerHitbox>();
-        _playerNetwork.GetHit(hitbox.GetDamage() * _damageModifier);
+
+        if (hitbox != null) _playerNetwork.GetHit(hitbox.GetDamage() * _damageModifier);
+    }
+
+    public float GetDamageModifier()
+    {
+        return _damageModifier;
     }
 }

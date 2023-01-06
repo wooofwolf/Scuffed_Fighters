@@ -10,6 +10,8 @@ public class PlayerNetwork : NetworkBehaviour
     [SerializeField] private float _movementSpeed = 1.0f;
     [SerializeField] private float _smoothInputSpeed = 0.2f;
 
+    [SerializeField] private GameObject _hand;
+
     private GameplayManager _gameplayManager;
     private PlayerInputActions _actions;
     private Rigidbody _rb;
@@ -30,13 +32,13 @@ public class PlayerNetwork : NetworkBehaviour
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private readonly NetworkVariable<bool> _allowCombo = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private readonly NetworkVariable<bool> _allowHits = new(true,
+    private NetworkVariable<bool> _allowHits = new(true,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private readonly NetworkVariable<bool> _isHit = new(false,
+    private NetworkVariable<bool> _isHit = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private readonly NetworkVariable<bool> _canBlock = new(false,
+    private NetworkVariable<bool> _canBlock = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private readonly NetworkVariable<bool> _isBlocking = new(false,
+    private NetworkVariable<bool> _isBlocking = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private readonly NetworkVariable<bool> _isDead = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -179,6 +181,11 @@ public class PlayerNetwork : NetworkBehaviour
     private void PlayAnimationClientRpc(string animationName, float transitionDuration)
     {
         _animator.CrossFadeInFixedTime(animationName, transitionDuration);
+    }
+
+    public void SpawnProjectile(Object obj)
+    {
+        Instantiate(obj, new Vector3(_hand.transform.position.x, _hand.transform.position.y, 0), Quaternion.Inverse(transform.rotation));
     }
 
     public void AllowCombo()
