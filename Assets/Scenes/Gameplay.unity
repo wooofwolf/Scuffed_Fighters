@@ -236,7 +236,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _winloseGui: {fileID: 1654703281}
-  _winloseText: {fileID: 0}
+  _winloseText: {fileID: 1939811390}
 --- !u!1 &571300431
 GameObject:
   m_ObjectHideFlags: 0
@@ -1336,8 +1336,8 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0

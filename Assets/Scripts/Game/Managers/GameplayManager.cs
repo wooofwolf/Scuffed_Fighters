@@ -59,12 +59,26 @@ public class GameplayManager : MonoBehaviour
         _gameManager.RelayManager.JoinRelay(relayCode);
     }
 
-    public void EndGame(PlayerNetwork winner)
+    public IEnumerator EndGame(int charId)
     {
         _winloseGui.gameObject.SetActive(true);
 
         StringBuilder sb = new(" wins!", 20);
-        //sb.Insert(0, winner.GetCharacter());
+        
+        switch (charId)
+        {
+            case 0:
+                sb.Insert(0, "Maria");
+                break;
+            case 1:
+                sb.Insert(0, "Abe");
+                break;
+        }
         _winloseText.SetText(sb.ToString());
+
+        yield return new WaitForSeconds(3);
+
+        _gameManager.CurrentGameState = GameManager.GameState.LOBBY;
+        SceneManager.LoadSceneAsync(1);
     }
 }

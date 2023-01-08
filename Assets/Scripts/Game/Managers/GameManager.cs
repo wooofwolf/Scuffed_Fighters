@@ -35,6 +35,8 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        Application.targetFrameRate = 60;
+
         LobbyManager = gameObject.GetComponent<LobbyManager>();
         RelayManager = gameObject.GetComponent<RelayManager>();
     }

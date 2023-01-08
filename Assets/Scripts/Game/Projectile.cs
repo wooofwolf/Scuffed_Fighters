@@ -8,6 +8,14 @@ public class Projectile : MonoBehaviour
     [SerializeField] private float _lifespan;
     [SerializeField] private float _speed;
     [SerializeField] private float _damage;
+    [SerializeField] private bool _deleteAfterHit = false;
+
+    private PlayerNetwork _owner;
+
+    public void SetOwner(PlayerNetwork owner)
+    {
+        _owner = owner;
+    }
 
     private void Update()
     {
@@ -22,8 +30,11 @@ public class Projectile : MonoBehaviour
     {
         PlayerHurtbox hurtbox = other.GetComponent<PlayerHurtbox>();
         PlayerNetwork playerNetwork = other.transform.root.GetComponent<PlayerNetwork>();
-        playerNetwork.GetHit(_damage * hurtbox.GetDamageModifier());
 
-        Destroy(gameObject);
+        if (playerNetwork != _owner)
+        {
+            playerNetwork.GetHit(_damage * hurtbox.GetDamageModifier());
+            if (_deleteAfterHit) Destroy(gameObject);
+        }
     }
 }

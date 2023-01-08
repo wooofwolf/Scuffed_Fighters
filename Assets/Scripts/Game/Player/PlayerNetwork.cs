@@ -32,13 +32,13 @@ public class PlayerNetwork : NetworkBehaviour
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private readonly NetworkVariable<bool> _allowCombo = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private NetworkVariable<bool> _allowHits = new(true,
+    private readonly NetworkVariable<bool> _allowHits = new(true,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private NetworkVariable<bool> _isHit = new(false,
+    private readonly NetworkVariable<bool> _isHit = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private NetworkVariable<bool> _canBlock = new(false,
+    private readonly NetworkVariable<bool> _canBlock = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private NetworkVariable<bool> _isBlocking = new(false,
+    private readonly NetworkVariable<bool> _isBlocking = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private readonly NetworkVariable<bool> _isDead = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -185,7 +185,9 @@ public class PlayerNetwork : NetworkBehaviour
 
     public void SpawnProjectile(Object obj)
     {
-        Instantiate(obj, new Vector3(_hand.transform.position.x, _hand.transform.position.y, 0), Quaternion.Inverse(transform.rotation));
+        Object projObj = Instantiate(obj, new Vector3(_hand.transform.position.x, _hand.transform.position.y, 0), Quaternion.Inverse(transform.rotation));
+        Projectile proj = (projObj as GameObject).GetComponent<Projectile>();
+        proj.SetOwner(this);
     }
 
     public void AllowCombo()
@@ -213,7 +215,7 @@ public class PlayerNetwork : NetworkBehaviour
         {
             _isBlocking.Value = true;
             _canBlock.Value = false;
-            PlayAnimationClientRpc("Blocking", 0.05f);
+            PlayAnimationServerRpc("Blocking", 0.05f);
             return;
         }
 
@@ -228,6 +230,9 @@ public class PlayerNetwork : NetworkBehaviour
         {
             _isDead.Value = true;
             PlayAnimationServerRpc("Death", 0.05f);
+
+            if (GameManager.Instance.IsHost) EndGameServerRpc(GameManager.Instance.CharacterOne);
+            else EndGameServerRpc(GameManager.Instance.CharacterTwo);
         }
         else PlayAnimationServerRpc("Impact", 0.05f);
     }
@@ -242,6 +247,18 @@ public class PlayerNetwork : NetworkBehaviour
     private void UpdateHealthbarClientRpc(float updatedHealth)
     {
         _healthbar.UpdateHealthbar(updatedHealth);
+    }
+
+    [ServerRpc]
+    private void EndGameServerRpc(int charId)
+    {
+        EndGameClientRpc(charId);
+    }
+
+    [ClientRpc]
+    private void EndGameClientRpc(int charId)
+    {
+        StartCoroutine(_gameplayManager.EndGame(charId));
     }
 
     public void AllowHits()

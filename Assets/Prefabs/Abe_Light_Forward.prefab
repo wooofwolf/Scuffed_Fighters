@@ -49,6 +49,7 @@ MonoBehaviour:
   _lifespan: 2
   _speed: 2
   _damage: 10
+  _deleteAfterHit: 1
 --- !u!135 &1024434567720412428
 SphereCollider:
   m_ObjectHideFlags: 0
