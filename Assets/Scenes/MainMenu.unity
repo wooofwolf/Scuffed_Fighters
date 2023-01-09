@@ -801,7 +801,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 15ef71dd5ccea0a4e8aa4b423d44383e, type: 2}
   _characterCellPrefab: {fileID: 147495907494085455, guid: f08397bae746ee244899a2024b3b3246,
     type: 3}
-  _localLobby: {fileID: 2049556995}
+  _localLobby: {fileID: 2049557000}
 --- !u!114 &426042307
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1215,7 +1215,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2049556995}
+      - m_Target: {fileID: 2049557000}
         m_TargetAssemblyTypeName: LocalLobby, Assembly-CSharp
         m_MethodName: JoinLobby
         m_Mode: 1
@@ -1998,7 +1998,7 @@ GameObject:
   - component: {fileID: 2049556999}
   - component: {fileID: 2049556998}
   - component: {fileID: 2049556997}
-  - component: {fileID: 2049556995}
+  - component: {fileID: 2049557000}
   m_Layer: 5
   m_Name: LobbyCanvas
   m_TagString: Untagged
@@ -2006,27 +2006,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2049556995
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2049556994}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 75f9ae7b1333b4e4ba1c52ee19e955da, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _lobbyCodeUI: {fileID: 1862243435}
-  _readyButtonUI: {fileID: 2129918617}
-  _playersReadyUI: {fileID: 90892566}
-  _codeInput: {fileID: 1787844730}
-  _playerOneImage: {fileID: 1876124893}
-  _playerTwoImage: {fileID: 288934582}
-  _spriteList:
-  - {fileID: 21300000, guid: b9b7f2fbff6cf204ba19647662fbbaae, type: 3}
-  - {fileID: 21300000, guid: 051bb6eab5a609a4a8befb0769318dfb, type: 3}
 --- !u!224 &2049556996
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2116,6 +2095,27 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &2049557000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2049556994}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b10e251691418f341ad2db66ab0f8d38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _lobbyCodeUI: {fileID: 1862243435}
+  _readyButtonUI: {fileID: 2129918617}
+  _playersReadyUI: {fileID: 90892566}
+  _codeInput: {fileID: 1787844730}
+  _playerOneImage: {fileID: 1876124893}
+  _playerTwoImage: {fileID: 288934582}
+  _spriteList:
+  - {fileID: 21300000, guid: b9b7f2fbff6cf204ba19647662fbbaae, type: 3}
+  - {fileID: 21300000, guid: 051bb6eab5a609a4a8befb0769318dfb, type: 3}
 --- !u!1 &2129918616
 GameObject:
   m_ObjectHideFlags: 0
@@ -2179,16 +2179,16 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2049556995}
+      - m_Target: {fileID: 2049557000}
         m_TargetAssemblyTypeName: LocalLobby, Assembly-CSharp
-        m_MethodName: GetReady
+        m_MethodName: ReadyButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: true
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &2129918618

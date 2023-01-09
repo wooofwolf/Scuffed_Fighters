@@ -150,7 +150,7 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    public async void GetReady()
+    public async void SetReady(string ready)
     {
         try
         {
@@ -161,13 +161,13 @@ public class LobbyManager : MonoBehaviour
                     {
                         "Ready", new PlayerDataObject(
                             visibility: PlayerDataObject.VisibilityOptions.Public,
-                            value: "true")
+                            value: ready)
                     }
                 }
             };
 
             await LobbyService.Instance.UpdatePlayerAsync(CurrentLobby.Id, AuthenticationService.Instance.PlayerId, options);
-            Debug.Log("Player's ready state set to true.");
+            Debug.Log("Player's ready state set to " + ready);
         }
         catch (LobbyServiceException e)
         { 

@@ -67,10 +67,10 @@ public class GameplayManager : MonoBehaviour
         
         switch (charId)
         {
-            case 0:
+            case 1:
                 sb.Insert(0, "Maria");
                 break;
-            case 1:
+            case 2:
                 sb.Insert(0, "Abe");
                 break;
         }

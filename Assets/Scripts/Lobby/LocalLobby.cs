@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using Unity.Services.Authentication;
-using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-[System.Serializable]
 public class LocalLobby : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _lobbyCodeUI;
@@ -22,57 +20,60 @@ public class LocalLobby : MonoBehaviour
 
     private const int MAX_PLAYER_COUNT = 2;
 
-    private readonly GameManager _gameManager = GameManager.Instance;
-    private Lobby _currentLobby;
-
-    private string _lobbyId;
-    private string _lobbyCode;
-    private string _hostId;
-    private int _availableSlots;
+    private GameManager _gameManager;
+    private LobbyManager _lobbyManager;
     private bool _isPlayerReady;
-    private int _playersReady;
     private int _playerOneChar = 0;
     private int _playerTwoChar = 0;
+    private int _playersReady;
 
     private void Start()
     {
-        HostLocalLobby();
+        _gameManager = GameManager.Instance;
+        _lobbyManager = GameManager.Instance.LobbyManager;
+        if (_lobbyManager.CurrentLobby == null) HostLobby();
+        else ResetLobby();
+    }
+
+    private async void HostLobby()
+    {
+        await _lobbyManager.HostLobby();
+    }
+
+    public async void JoinLobby()
+    {
+        await _lobbyManager.JoinLobby(_codeInput.text);
+    }
+
+    private void ResetLobby()
+    {
+        _lobbyManager.SetReady("false");
+        _lobbyManager.ChangeCharacter(0);
     }
 
     private void Update()
     {
-        if (_currentLobby == null) return;
+        if (_lobbyManager.CurrentLobby == null) return;
+        if (_gameManager.CurrentGameState != GameManager.GameState.LOBBY) return;
 
-        if (_currentLobby != _gameManager.LobbyManager.CurrentLobby && _gameManager.CurrentGameState == GameManager.GameState.LOBBY)
+        _playersReady = 0;
+        foreach (Player p in _lobbyManager.CurrentLobby.Players)
         {
-            _currentLobby = _gameManager.LobbyManager.CurrentLobby;
-
-            if (_currentLobby.Id != _lobbyId) _lobbyId = _currentLobby.Id;
-            if (_currentLobby.LobbyCode != _lobbyCode) _lobbyCode = _currentLobby.LobbyCode;
-            if (_currentLobby.HostId != _hostId) _hostId = _currentLobby.HostId;
-            if (_currentLobby.AvailableSlots != _availableSlots) _availableSlots = _currentLobby.AvailableSlots;
-            
-            _playersReady = 0;
-            foreach (Player p in _currentLobby.Players)
+            p.Data.TryGetValue("Ready", out var playerData);
+            if (playerData.Value.Equals("true"))
             {
-                p.Data.TryGetValue("Ready", out var playerData);
-                if (playerData.Value.Equals("true"))
-                {
-                    ++_playersReady;
-                }
-
-                GetCharacter(p);
+                ++_playersReady;
             }
 
-            UpdateGUI();
+            GetCharacter(p);
+        }
 
-            if (_playersReady == MAX_PLAYER_COUNT)
-            {
-                _gameManager.CurrentGameState = GameManager.GameState.COUNTDOWN;
-                StartCoroutine(Countdown(5));
-            }
+        UpdateGUI();
 
-            Debug.Log("Lobby updated.");
+        if (_playersReady == MAX_PLAYER_COUNT)
+        {
+            _gameManager.CurrentGameState = GameManager.GameState.COUNTDOWN;
+            StartCoroutine(Countdown(5));
         }
     }
 
@@ -82,7 +83,7 @@ public class LocalLobby : MonoBehaviour
         if (p.Id == AuthenticationService.Instance.PlayerId) return;
 
         p.Data.TryGetValue("Character", out var playerChar);
-        if (p.Id == _hostId)    // Host's character
+        if (p.Id == _lobbyManager.CurrentLobby.HostId)    // Host's character
         {
             if (_playerOneChar != int.Parse(playerChar.Value)) _playerOneChar = int.Parse(playerChar.Value);
         }
@@ -92,20 +93,12 @@ public class LocalLobby : MonoBehaviour
         }
     }
 
-    private async void HostLocalLobby()
-    {
-        _currentLobby = await _gameManager.LobbyManager.HostLobby();
-    }
-
-    public async void JoinLobby()
-    {
-        _currentLobby = await _gameManager.LobbyManager.JoinLobby(_codeInput.text);
-    }
-
     private void UpdateGUI()
     {
+        Lobby currentLobby = _lobbyManager.CurrentLobby;
+
         StringBuilder sb = new("Lobby Code: ", 18);
-        sb.Append(_lobbyCode);
+        sb.Append(currentLobby.LobbyCode);
         _lobbyCodeUI.SetText(sb);
         Debug.Log("Lobby code updated!");
 
@@ -133,20 +126,20 @@ public class LocalLobby : MonoBehaviour
         Debug.Log("Local lobby GUI updated!");
     }
 
-    public void GetReady()
+    public void ReadyButton()
     {
-        if (AuthenticationService.Instance.PlayerId == _hostId && _playerOneChar == 0) return;
-        else if (AuthenticationService.Instance.PlayerId != _hostId && _playerTwoChar == 0) return;
+        if (AuthenticationService.Instance.PlayerId == _lobbyManager.CurrentLobby.HostId && _playerOneChar == 0) return;
+        else if (AuthenticationService.Instance.PlayerId != _lobbyManager.CurrentLobby.HostId && _playerTwoChar == 0) return;
 
-        _gameManager.LobbyManager.GetReady();
         _isPlayerReady = true;
+        _lobbyManager.SetReady("true");
     }
 
     public void ChangeCharacter(int charId)
     {
         _gameManager.LobbyManager.ChangeCharacter(charId);
 
-        if (AuthenticationService.Instance.PlayerId == _hostId)
+        if (AuthenticationService.Instance.PlayerId == _lobbyManager.CurrentLobby.HostId)
         {
             _playerOneChar = charId;
         }
@@ -174,7 +167,7 @@ public class LocalLobby : MonoBehaviour
         }
 
         _gameManager.CurrentGameState = GameManager.GameState.IN_GAME;
-        _gameManager.IsHost = AuthenticationService.Instance.PlayerId == _hostId;
+        _gameManager.IsHost = AuthenticationService.Instance.PlayerId == _lobbyManager.CurrentLobby.HostId;
         _gameManager.CharacterOne = _playerOneChar;
         _gameManager.CharacterTwo = _playerTwoChar;
         SceneManager.LoadSceneAsync(2);
