@@ -18,7 +18,7 @@ public class PlayerHurtbox : MonoBehaviour
     {
         PlayerHitbox hitbox = other.GetComponent<PlayerHitbox>();
 
-        if (hitbox != null) _playerNetwork.GetHit(hitbox.GetDamage() * _damageModifier);
+        if (hitbox != null) _playerNetwork.GetHit(hitbox.GetDamage() * _damageModifier, transform.position);
     }
 
     public float GetDamageModifier()

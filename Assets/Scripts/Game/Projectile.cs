@@ -33,7 +33,7 @@ public class Projectile : MonoBehaviour
 
         if (playerNetwork != _owner)
         {
-            playerNetwork.GetHit(_damage * hurtbox.GetDamageModifier());
+            playerNetwork.GetHit(_damage * hurtbox.GetDamageModifier(), other.transform.position);
             if (_deleteAfterHit) Destroy(gameObject);
         }
     }

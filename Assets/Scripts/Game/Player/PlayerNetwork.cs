@@ -11,12 +11,15 @@ public class PlayerNetwork : NetworkBehaviour
     [SerializeField] private float _smoothInputSpeed = 0.2f;
 
     [SerializeField] private GameObject _hand;
+    [SerializeField] private GameObject _hitEffect;
 
     private GameplayManager _gameplayManager;
     private PlayerInputActions _actions;
     private Rigidbody _rb;
     private Animator _animator;
     private Healthbar _healthbar;
+    private TimeScaleController _timeScaleController;
+    private CameraController _cameraController;
 
     private readonly NetworkVariable<float> _health = new(100.0f,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -50,6 +53,8 @@ public class PlayerNetwork : NetworkBehaviour
         _gameplayManager = GameObject.Find("GameplayManager").GetComponent<GameplayManager>();
         _rb = GetComponent<Rigidbody>();
         _animator = GetComponent<Animator>();
+        _timeScaleController = TimeScaleController.Instance;
+        _cameraController = CameraController.Instance;
 
         _actions = new();
         _actions.Enable();
@@ -205,7 +210,7 @@ public class PlayerNetwork : NetworkBehaviour
         _allowCombo.Value = false;
     }
 
-    public void GetHit(float damage)
+    public void GetHit(float damage, Vector3 pos)
     {
         if (!_isOwner) return;
         if (!_allowHits.Value) return;
@@ -235,6 +240,40 @@ public class PlayerNetwork : NetworkBehaviour
             else EndGameServerRpc(GameManager.Instance.CharacterTwo);
         }
         else PlayAnimationServerRpc("Impact", 0.05f);
+
+        HitEffectsServerRpc(pos, _isDead.Value);
+    }
+
+    [ServerRpc]
+    private void HitEffectsServerRpc(Vector3 pos, bool dead)
+    {
+        HitEffectsClientRpc(pos, dead);
+    }
+
+    [ClientRpc]
+    private void HitEffectsClientRpc(Vector3 pos, bool dead)
+    {
+        if (dead)
+        {
+            StartCoroutine(_timeScaleController.HitStop(3f));
+            _cameraController.ShakeCamera(3f, 0.5f);
+        }
+        else
+        {
+            StartCoroutine(_timeScaleController.HitStop(0.2f));
+            _cameraController.ShakeCamera(0.5f, 0.05f);
+        }
+
+        GameObject effect = Instantiate(_hitEffect, pos, Quaternion.identity);
+        effect.transform.LookAt(Camera.main.transform);
+        DeleteEffectAfterTime(0.75f, effect);
+    }
+
+    private IEnumerator DeleteEffectAfterTime(float time, GameObject effect)
+    {
+        yield return new WaitForSeconds(time);
+
+        Destroy(effect);
     }
 
     [ServerRpc]

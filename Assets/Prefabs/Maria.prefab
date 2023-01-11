@@ -273,6 +273,8 @@ MonoBehaviour:
   _movementSpeed: 1
   _smoothInputSpeed: 0.2
   _hand: {fileID: 0}
+  _hitEffect: {fileID: 5024009746357069194, guid: ec3f674830402cc45bce805cf6493db7,
+    type: 3}
 --- !u!1 &565432156235363714
 GameObject:
   m_ObjectHideFlags: 0
