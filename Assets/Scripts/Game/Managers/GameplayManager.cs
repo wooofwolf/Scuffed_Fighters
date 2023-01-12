@@ -17,6 +17,7 @@ public class GameplayManager : MonoBehaviour
 {
     [SerializeField] private Transform _winloseGui;
     [SerializeField] private TextMeshProUGUI _winloseText;
+    [SerializeField] private Timer _timer;
 
     public CameraManager CameraManager { get; private set; }
 
@@ -74,6 +75,24 @@ public class GameplayManager : MonoBehaviour
                 sb.Insert(0, "Abe");
                 break;
         }
+        _winloseText.SetText(sb.ToString());
+
+        yield return new WaitForSeconds(3);
+
+        _gameManager.CurrentGameState = GameManager.GameState.LOBBY;
+        SceneManager.LoadSceneAsync(1);
+    }
+
+    public Timer GetTimer()
+    {
+        return _timer;
+    }
+
+    public IEnumerator DrawGame()
+    {
+        _winloseGui.gameObject.SetActive(true);
+
+        StringBuilder sb = new("DRAW!", 5);
         _winloseText.SetText(sb.ToString());
 
         yield return new WaitForSeconds(3);

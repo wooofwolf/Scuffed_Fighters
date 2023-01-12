@@ -13,9 +13,9 @@ public class TimeScaleController : MonoBehaviour
         else Instance = this;
     }
 
-    public IEnumerator HitStop(float timer)
+    public IEnumerator HitStop(float timeScale, float timer)
     {
-        SetTimeScale(0.1f);
+        SetTimeScale(timeScale);
 
         yield return new WaitForSecondsRealtime(timer);
 

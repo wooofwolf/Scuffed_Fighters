@@ -20,6 +20,9 @@ public class PlayerNetwork : NetworkBehaviour
     private Healthbar _healthbar;
     private TimeScaleController _timeScaleController;
     private CameraController _cameraController;
+    private Timer _timer;
+
+    private bool _gameDrawed = false;
 
     private readonly NetworkVariable<float> _health = new(100.0f,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -55,6 +58,7 @@ public class PlayerNetwork : NetworkBehaviour
         _animator = GetComponent<Animator>();
         _timeScaleController = TimeScaleController.Instance;
         _cameraController = CameraController.Instance;
+        _timer = _gameplayManager.GetTimer();
 
         _actions = new();
         _actions.Enable();
@@ -122,6 +126,12 @@ public class PlayerNetwork : NetworkBehaviour
         if (!_isOwner) return;
 
         _normalizedInputX.Value = _actions.Player.Movement.ReadValue<float>();
+
+        if (_timer.GetTimeLeft() < 0 && !_gameDrawed)
+        {
+            DrawServerRpc();
+            _gameDrawed = true;
+        }
     }
 
     private void FixedUpdate()
@@ -255,18 +265,18 @@ public class PlayerNetwork : NetworkBehaviour
     {
         if (dead)
         {
-            StartCoroutine(_timeScaleController.HitStop(3f));
+            StartCoroutine(_timeScaleController.HitStop(0.1f, 3f));
             _cameraController.ShakeCamera(3f, 0.5f);
         }
         else
         {
-            StartCoroutine(_timeScaleController.HitStop(0.2f));
+            StartCoroutine(_timeScaleController.HitStop(0.2f, 0.2f));
             _cameraController.ShakeCamera(0.5f, 0.05f);
         }
 
         GameObject effect = Instantiate(_hitEffect, pos, Quaternion.identity);
         effect.transform.LookAt(Camera.main.transform);
-        DeleteEffectAfterTime(0.75f, effect);
+        StartCoroutine(DeleteEffectAfterTime(0.75f, effect));
     }
 
     private IEnumerator DeleteEffectAfterTime(float time, GameObject effect)
@@ -298,6 +308,18 @@ public class PlayerNetwork : NetworkBehaviour
     private void EndGameClientRpc(int charId)
     {
         StartCoroutine(_gameplayManager.EndGame(charId));
+    }
+
+    [ServerRpc]
+    private void DrawServerRpc()
+    {
+        DrawClientRpc();
+    }
+
+    [ClientRpc]
+    private void DrawClientRpc()
+    {
+        StartCoroutine(_gameplayManager.DrawGame());
     }
 
     public void AllowHits()
