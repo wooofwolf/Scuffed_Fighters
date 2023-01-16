@@ -461,6 +461,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 106533415}
   m_CullTransparentMesh: 1
+--- !u!1 &164237024
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 164237025}
+  - component: {fileID: 164237026}
+  m_Layer: 0
+  m_Name: MenuControl
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &164237025
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 164237024}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1294906062}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &164237026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 164237024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5230707b5a900d45876af8e5d5fedda, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _lobbyHandler: {fileID: 706599181}
+  _joinCodeInput: {fileID: 1787844730}
 --- !u!1 &217779195
 GameObject:
   m_ObjectHideFlags: 0
@@ -801,7 +847,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 15ef71dd5ccea0a4e8aa4b423d44383e, type: 2}
   _characterCellPrefab: {fileID: 147495907494085455, guid: f08397bae746ee244899a2024b3b3246,
     type: 3}
-  _localLobby: {fileID: 2049557000}
+  _lobbyHandler: {fileID: 706599181}
 --- !u!114 &426042307
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -826,6 +872,74 @@ MonoBehaviour:
   m_Spacing: {x: 0, y: 0}
   m_Constraint: 0
   m_ConstraintCount: 2
+--- !u!1 &706599178
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 706599179}
+  - component: {fileID: 706599181}
+  - component: {fileID: 706599180}
+  m_Layer: 0
+  m_Name: LobbyHandler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &706599179
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706599178}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1294906062}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &706599180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706599178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 2196632835
+  AlwaysReplicateAsRoot: 0
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!114 &706599181
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706599178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61b597447c197df428ccb60ea6accd03, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _joinCodeText: {fileID: 1862243435}
+  _playersReadyText: {fileID: 90892566}
+  _playerOneImage: {fileID: 1876124893}
+  _playerTwoImage: {fileID: 288934582}
+  _spriteList:
+  - {fileID: 21300000, guid: b9b7f2fbff6cf204ba19647662fbbaae, type: 3}
+  - {fileID: 21300000, guid: 051bb6eab5a609a4a8befb0769318dfb, type: 3}
 --- !u!1 &1129333437
 GameObject:
   m_ObjectHideFlags: 0
@@ -1025,7 +1139,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 706599179}
+  - {fileID: 164237025}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1215,9 +1331,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2049557000}
-        m_TargetAssemblyTypeName: LocalLobby, Assembly-CSharp
-        m_MethodName: JoinLobby
+      - m_Target: {fileID: 164237026}
+        m_TargetAssemblyTypeName: MenuControl, Assembly-CSharp
+        m_MethodName: JoinRelay
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1998,7 +2114,6 @@ GameObject:
   - component: {fileID: 2049556999}
   - component: {fileID: 2049556998}
   - component: {fileID: 2049556997}
-  - component: {fileID: 2049557000}
   m_Layer: 5
   m_Name: LobbyCanvas
   m_TagString: Untagged
@@ -2095,27 +2210,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &2049557000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2049556994}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b10e251691418f341ad2db66ab0f8d38, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _lobbyCodeUI: {fileID: 1862243435}
-  _readyButtonUI: {fileID: 2129918617}
-  _playersReadyUI: {fileID: 90892566}
-  _codeInput: {fileID: 1787844730}
-  _playerOneImage: {fileID: 1876124893}
-  _playerTwoImage: {fileID: 288934582}
-  _spriteList:
-  - {fileID: 21300000, guid: b9b7f2fbff6cf204ba19647662fbbaae, type: 3}
-  - {fileID: 21300000, guid: 051bb6eab5a609a4a8befb0769318dfb, type: 3}
 --- !u!1 &2129918616
 GameObject:
   m_ObjectHideFlags: 0
@@ -2179,9 +2273,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2049557000}
-        m_TargetAssemblyTypeName: LocalLobby, Assembly-CSharp
-        m_MethodName: ReadyButton
+      - m_Target: {fileID: 706599181}
+        m_TargetAssemblyTypeName: LobbyHandler, Assembly-CSharp
+        m_MethodName: GetReady
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

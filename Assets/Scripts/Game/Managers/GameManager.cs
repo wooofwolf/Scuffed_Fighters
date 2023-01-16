@@ -1,43 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
-    // Singleton Pattern
-    public static GameManager Instance { get; private set; }
+    public static GameManager Instance { get; internal set; }
+
+    private Dictionary<ulong, int> _characters;
 
     private void Awake()
     {
-        DontDestroyOnLoad(gameObject);
+        if (Instance != this && Instance != null) Destroy(Instance.gameObject);
+
         Instance = this;
+        DontDestroyOnLoad(this);
     }
 
-    public enum GameState
+    public void SetCharacters(Dictionary<ulong, int> characters)
     {
-        SPLASH_SCREEN = 0,
-        LOBBY,
-        COUNTDOWN,
-        IN_GAME
+        _characters = characters;
     }
 
-    public LobbyManager LobbyManager { get; private set; }
-    public RelayManager RelayManager { get; private set; }
-
-    public GameState CurrentGameState { get; set; } = GameState.SPLASH_SCREEN;
-    public bool IsHost { get; set; }
-
-    public int CharacterOne { get; set; }
-    public int CharacterTwo { get; set; }
-
-    private void Start()
+    public Dictionary<ulong, int> GetCharacters()
     {
-        Application.targetFrameRate = 60;
+        return _characters;
+    }
 
-        LobbyManager = gameObject.GetComponent<LobbyManager>();
-        RelayManager = gameObject.GetComponent<RelayManager>();
+    public int GetCharactersId(ulong clientId)
+    {
+        return _characters[clientId];
     }
 }

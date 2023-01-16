@@ -18,6 +18,7 @@ public class SC_FPSCounter : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        Application.targetFrameRate = 60;
         timeleft = updateInterval;
 
         textStyle.fontStyle = FontStyle.Bold;

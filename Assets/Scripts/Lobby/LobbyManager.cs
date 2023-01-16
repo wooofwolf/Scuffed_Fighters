@@ -19,7 +19,7 @@ public class LobbyManager : MonoBehaviour
     private readonly string _lobbyName = Guid.NewGuid().ToString();
     private readonly int _rateLimitGetLobby = 1;
 
-    public async Task<Lobby> HostLobby()
+    public async void HostLobby()
     {
         try
         {
@@ -59,14 +59,10 @@ public class LobbyManager : MonoBehaviour
             _pollLobbyCoroutine = PollLobbyCoroutine(_rateLimitGetLobby);
             StartCoroutine(_pollLobbyCoroutine);
             Debug.Log("Started poll lobby coroutine.");
-
-            return CurrentLobby;
         }
         catch (Exception e)
         {
             Debug.LogException(e);
-
-            return null;
         }
     }
 
@@ -81,7 +77,7 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    public async Task<Lobby> JoinLobby(string lobbyCode)
+    public async void JoinLobby(string lobbyCode)
     {
         try
         {
@@ -123,14 +119,10 @@ public class LobbyManager : MonoBehaviour
             _pollLobbyCoroutine = PollLobbyCoroutine(_rateLimitGetLobby);
             StartCoroutine(_pollLobbyCoroutine);
             Debug.Log("Started poll lobby coroutine.");
-
-            return CurrentLobby;
         }
         catch (LobbyServiceException e)
         {
             Debug.LogError(e);
-
-            return null;
         }
     }
 

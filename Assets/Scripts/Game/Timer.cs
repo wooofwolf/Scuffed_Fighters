@@ -4,28 +4,25 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-public class Timer : MonoBehaviour
+public class Timer : NetworkBehaviour
 {
-    private TextMeshProUGUI ui;
-    private float _timeLeft = 10;
-    private bool _timerStarted = false;
+    private TextMeshProUGUI _timerText;
+    private float _timeLeft;
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
-        ui = GetComponent<TextMeshProUGUI>();
+        _timerText = GetComponent<TextMeshProUGUI>();
+        _timeLeft = 99;
     }
 
     private void Update()
     {
-        if (NetworkManager.Singleton.ConnectedClientsList.Count == 2 && !_timerStarted)
-        {
-            _timerStarted = true;
-        }
+        if (_timeLeft > 0) _timeLeft -= Time.deltaTime;
+    }
 
-        if (!_timerStarted) return;
-
-        ui.text = ((int)_timeLeft).ToString();
-        _timeLeft -= Time.deltaTime;
+    private void OnGUI()
+    {
+        _timerText.text = ((int)_timeLeft).ToString();
     }
 
     public int GetTimeLeft()

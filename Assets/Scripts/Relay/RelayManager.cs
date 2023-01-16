@@ -23,6 +23,7 @@ public class RelayManager : MonoBehaviour
             allocation.ConnectionData);
 
             NetworkManager.Singleton.StartHost();
+            SceneTransitionHandler.Instance.RegisterCallbacks();
 
             return joinCode;
         }
@@ -37,8 +38,11 @@ public class RelayManager : MonoBehaviour
     {
         try
         {
+            NetworkManager.Singleton.Shutdown();
+
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
+            NetworkManager.Singleton.GetComponent<UnityTransport>().DisconnectLocalClient();
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetClientRelayData(joinAllocation.RelayServer.IpV4,
             (ushort)joinAllocation.RelayServer.Port,
             joinAllocation.AllocationIdBytes,

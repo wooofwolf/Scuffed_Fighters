@@ -51,8 +51,15 @@ public class PlayerNetwork : NetworkBehaviour
 
     private bool _isOwner;
 
-    private void Awake()
+    private void Start()
     {
+        StartCoroutine(Init());
+    }
+
+    private IEnumerator Init()
+    {
+        yield return new WaitForSecondsRealtime(1f);
+
         _gameplayManager = GameObject.Find("GameplayManager").GetComponent<GameplayManager>();
         _rb = GetComponent<Rigidbody>();
         _animator = GetComponent<Animator>();
@@ -64,15 +71,10 @@ public class PlayerNetwork : NetworkBehaviour
         _actions.Enable();
         _actions.Player.Crouch.performed += CrouchPerformed;
         _actions.Player.Light.performed += LightPerformed;
-    }
 
-    public override void OnNetworkSpawn()
-    {
         _isOwner = IsOwner;
 
         InitHealthbars(IsHost, _isOwner);
-
-        if (!_isOwner) return;
 
         InitPlayerServerRpc(IsHost);
     }
@@ -246,8 +248,8 @@ public class PlayerNetwork : NetworkBehaviour
             _isDead.Value = true;
             PlayAnimationServerRpc("Death", 0.05f);
 
-            if (GameManager.Instance.IsHost) EndGameServerRpc(GameManager.Instance.CharacterOne);
-            else EndGameServerRpc(GameManager.Instance.CharacterTwo);
+            //if (GameManager.Instance.IsHost) EndGameServerRpc(GameManager.Instance.CharacterOne);
+            //else EndGameServerRpc(GameManager.Instance.CharacterTwo);
         }
         else PlayAnimationServerRpc("Impact", 0.05f);
 

@@ -13,51 +13,34 @@ using Unity.Services.Relay.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameplayManager : MonoBehaviour
+public class GameplayManager : NetworkBehaviour
 {
     [SerializeField] private Transform _winloseGui;
     [SerializeField] private TextMeshProUGUI _winloseText;
     [SerializeField] private Timer _timer;
+    [SerializeField] private CharacterSpawner _characterSpawner;
 
     public CameraManager CameraManager { get; private set; }
 
-    private readonly GameManager _gameManager = GameManager.Instance;
-
-    private void Awake()
+    public enum GameplayState
     {
-        SceneManager.sceneLoaded += OnSceneLoaded;
+        START = 0,
+        IN_PROGRESS,
+        END
     }
 
-    private async void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    private GameplayState _gameplayState = GameplayState.START;
+
+    private void Start()
     {
         _winloseGui.gameObject.SetActive(false);
 
         CameraManager = GameObject.Find("CM vcam1").GetComponent<CameraManager>();
-
-        if (_gameManager.IsHost)
-        {
-            string relayCode = await _gameManager.RelayManager.CreateRelay();
-            _gameManager.LobbyManager.SetRelayKey(relayCode);
-        }
-        else
-        {
-            StartCoroutine(TryJoiningRelay());
-        }
     }
 
-    private IEnumerator TryJoiningRelay()
+    public GameplayState GetGameplayState()
     {
-        var delay = new WaitForSecondsRealtime(1);
-        string relayCode = "0";
-
-        while (relayCode == "0")
-        {
-            relayCode = _gameManager.LobbyManager.GetRelayKey();
-
-            yield return delay;
-        }
-
-        _gameManager.RelayManager.JoinRelay(relayCode);
+        return _gameplayState;
     }
 
     public IEnumerator EndGame(int charId)
@@ -77,9 +60,13 @@ public class GameplayManager : MonoBehaviour
         }
         _winloseText.SetText(sb.ToString());
 
+        //_gameManager.LobbyManager.SetReady("false");
+        //_gameManager.LobbyManager.ChangeCharacter(0);
+
         yield return new WaitForSeconds(3);
 
-        _gameManager.CurrentGameState = GameManager.GameState.LOBBY;
+        //_gameManager.RelayManager.DisconnectRelay();
+        //_gameManager.CurrentGameState = GameManager.GameState.LOBBY;
         SceneManager.LoadSceneAsync(1);
     }
 
@@ -97,7 +84,7 @@ public class GameplayManager : MonoBehaviour
 
         yield return new WaitForSeconds(3);
 
-        _gameManager.CurrentGameState = GameManager.GameState.LOBBY;
+        //_gameManager.CurrentGameState = GameManager.GameState.LOBBY;
         SceneManager.LoadSceneAsync(1);
     }
 }

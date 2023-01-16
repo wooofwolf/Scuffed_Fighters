@@ -9,13 +9,25 @@ public class CharacterSpawner : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (GameManager.Instance.IsHost) SpawnPlayerServerRpc(NetworkManager.Singleton.LocalClientId, GameManager.Instance.CharacterOne - 1);
-        else SpawnPlayerServerRpc(NetworkManager.Singleton.LocalClientId, GameManager.Instance.CharacterTwo - 1);
+        SpawnPlayerServerRpc(NetworkManager.Singleton.LocalClientId, GameManager.Instance.GetCharactersId(NetworkManager.Singleton.LocalClientId) - 1);
+        //if (!IsServer) return;
+
+        //Dictionary<ulong, int> characters = GameManager.Instance.GetCharacters();
+
+        //foreach (var character in characters)
+        //{
+        //    GameObject newPlayer = Instantiate(_playerPrefabList[character.Value - 1]);
+        //    NetworkObject netObj = newPlayer.GetComponent<NetworkObject>();
+        //    newPlayer.SetActive(true);
+        //    netObj.SpawnAsPlayerObject(character.Key, true);
+        //}
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void SpawnPlayerServerRpc(ulong clientId, int charId)
     {
+        Debug.Log(clientId + " is spawning player");
+
         GameObject newPlayer = Instantiate(_playerPrefabList[charId]);
         NetworkObject netObj = newPlayer.GetComponent<NetworkObject>();
         newPlayer.SetActive(true);
