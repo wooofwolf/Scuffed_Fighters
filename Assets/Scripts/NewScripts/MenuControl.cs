@@ -17,6 +17,8 @@ public class MenuControl : MonoBehaviour
 
     private void Start()
     {
+        if (NetworkManager.Singleton.IsListening) return;
+
         CreateRelay();
     }
 

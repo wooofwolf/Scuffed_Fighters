@@ -131,7 +131,7 @@ public class PlayerNetwork : NetworkBehaviour
 
         if (_timer.GetTimeLeft() < 0 && !_gameDrawed)
         {
-            DrawServerRpc();
+            EndGameServerRpc(0);
             _gameDrawed = true;
         }
     }
@@ -248,8 +248,8 @@ public class PlayerNetwork : NetworkBehaviour
             _isDead.Value = true;
             PlayAnimationServerRpc("Death", 0.05f);
 
-            //if (GameManager.Instance.IsHost) EndGameServerRpc(GameManager.Instance.CharacterOne);
-            //else EndGameServerRpc(GameManager.Instance.CharacterTwo);
+            if (IsOwnedByServer) EndGameServerRpc(GameManager.Instance.GetCharacters()[1]);
+            else EndGameServerRpc(GameManager.Instance.GetCharacters()[0]);
         }
         else PlayAnimationServerRpc("Impact", 0.05f);
 
@@ -309,19 +309,8 @@ public class PlayerNetwork : NetworkBehaviour
     [ClientRpc]
     private void EndGameClientRpc(int charId)
     {
+        _timer.SetTimerRunning(false);
         StartCoroutine(_gameplayManager.EndGame(charId));
-    }
-
-    [ServerRpc]
-    private void DrawServerRpc()
-    {
-        DrawClientRpc();
-    }
-
-    [ClientRpc]
-    private void DrawClientRpc()
-    {
-        StartCoroutine(_gameplayManager.DrawGame());
     }
 
     public void AllowHits()

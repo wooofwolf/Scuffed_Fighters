@@ -51,6 +51,9 @@ public class GameplayManager : NetworkBehaviour
         
         switch (charId)
         {
+            case 0:
+                sb = new("Draw!", 5);
+                break;
             case 1:
                 sb.Insert(0, "Maria");
                 break;
@@ -60,31 +63,13 @@ public class GameplayManager : NetworkBehaviour
         }
         _winloseText.SetText(sb.ToString());
 
-        //_gameManager.LobbyManager.SetReady("false");
-        //_gameManager.LobbyManager.ChangeCharacter(0);
-
         yield return new WaitForSeconds(3);
 
-        //_gameManager.RelayManager.DisconnectRelay();
-        //_gameManager.CurrentGameState = GameManager.GameState.LOBBY;
-        SceneManager.LoadSceneAsync(1);
+        SceneTransitionHandler.Instance.SwitchScene("MainMenu", SceneTransitionHandler.SceneStates.LOBBY);
     }
 
     public Timer GetTimer()
     {
         return _timer;
-    }
-
-    public IEnumerator DrawGame()
-    {
-        _winloseGui.gameObject.SetActive(true);
-
-        StringBuilder sb = new("DRAW!", 5);
-        _winloseText.SetText(sb.ToString());
-
-        yield return new WaitForSeconds(3);
-
-        //_gameManager.CurrentGameState = GameManager.GameState.LOBBY;
-        SceneManager.LoadSceneAsync(1);
     }
 }
