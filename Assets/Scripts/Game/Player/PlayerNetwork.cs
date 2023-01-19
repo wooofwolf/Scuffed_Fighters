@@ -12,6 +12,7 @@ public class PlayerNetwork : NetworkBehaviour
 
     [SerializeField] private GameObject _hand;
     [SerializeField] private GameObject _hitEffect;
+    [SerializeField] private GameObject _shieldEffect;
 
     private GameplayManager _gameplayManager;
     private PlayerInputActions _actions;
@@ -233,6 +234,7 @@ public class PlayerNetwork : NetworkBehaviour
             _isBlocking.Value = true;
             _canBlock.Value = false;
             PlayAnimationServerRpc("Blocking", 0.05f);
+            ShieldEffectsServerRpc();
             return;
         }
 
@@ -254,6 +256,20 @@ public class PlayerNetwork : NetworkBehaviour
         else PlayAnimationServerRpc("Impact", 0.05f);
 
         HitEffectsServerRpc(pos, _isDead.Value);
+    }
+
+    [ServerRpc]
+    private void ShieldEffectsServerRpc()
+    {
+        ShieldEffectsClientRpc();
+    }
+
+    [ClientRpc]
+    private void ShieldEffectsClientRpc()
+    {
+        GameObject effect = Instantiate(_shieldEffect, new Vector3(transform.position.x, transform.position.y + 1, transform.position.z), Quaternion.identity);
+        effect.transform.LookAt(Camera.main.transform);
+        StartCoroutine(DeleteEffectAfterTime(1f, effect));
     }
 
     [ServerRpc]
