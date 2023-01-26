@@ -9,13 +9,12 @@ using Unity.Services.Authentication;
 
 public class LobbyHandler : NetworkBehaviour
 {
-    [SerializeField] private TextMeshProUGUI _joinCodeText;
+    [SerializeField] private TextMeshPro _joinCodeText;
 
-    [SerializeField] private TextMeshProUGUI _playersReadyText;
+    [SerializeField] private TextMeshPro _playersReadyText;
 
-    [SerializeField] private Image _playerOneImage;
-    [SerializeField] private Image _playerTwoImage;
-    [SerializeField] private List<Sprite> _spriteList;
+    [SerializeField] private List<GameObject> _characterParents;
+    [SerializeField] private List<GameObject> _characterPrefabs;
 
     private readonly NetworkManager _networkManager = NetworkManager.Singleton;
     private Dictionary<ulong, bool> _clientsReady;
@@ -48,9 +47,12 @@ public class LobbyHandler : NetworkBehaviour
 
         // Players ready
         _playersReady = 0;
-        foreach (var clientReadyPair in _clientsReady)
+        if (_clientsReady != null)
         {
-            if (clientReadyPair.Value) ++_playersReady;
+            foreach (var clientReadyPair in _clientsReady)
+            {
+                if (clientReadyPair.Value) ++_playersReady;
+            }
         }
 
         if (!_playersReadyText.text.StartsWith(_playersReady.ToString()))
@@ -58,23 +60,6 @@ public class LobbyHandler : NetworkBehaviour
             StringBuilder sb = new(" / 2", 5);
             sb.Insert(0, _playersReady);
             _playersReadyText.SetText(sb);
-        }
-
-        // Characters
-        foreach (var character in _characters)
-        {
-            if (character.Value == 0) continue;
-
-            if (character.Key == 0)
-            {
-                _playerOneImage.sprite = _spriteList[character.Value - 1];
-                _playerOneImage.color = Color.white;
-            }
-            else
-            {
-                _playerTwoImage.sprite = _spriteList[character.Value - 1];
-                _playerTwoImage.color = Color.white;
-            }
         }
     }
 
@@ -161,8 +146,19 @@ public class LobbyHandler : NetworkBehaviour
     {
         _characters[_networkManager.LocalClientId] = charId;
 
-        if (IsServer) UpdateCharacters();
-        else OnCharacterChangeServerRpc(_networkManager.LocalClientId, charId);
+        if (IsServer)
+        {
+            UpdateCharacters();
+
+            if (_characterParents[0].transform.childCount > 0) _characterParents[0].transform.GetChild(0).gameObject.GetComponent<NetworkObject>().Despawn();
+            GameObject go = Instantiate(_characterPrefabs[charId - 1], _characterParents[0].transform);
+            go.GetComponent<NetworkObject>().Spawn();
+            go.transform.parent = _characterParents[0].transform;
+        }
+        else
+        {
+            OnCharacterChangeServerRpc(_networkManager.LocalClientId, charId);
+        }
     }
 
     private void UpdateCharacters()
@@ -191,6 +187,12 @@ public class LobbyHandler : NetworkBehaviour
         if (_characters.ContainsKey(clientid))
         {
             _characters[clientid] = charId;
+
+            if (_characterParents[1].transform.childCount > 0) _characterParents[1].transform.GetChild(0).gameObject.GetComponent<NetworkObject>().Despawn();
+            GameObject go = Instantiate(_characterPrefabs[charId - 1], _characterParents[1].transform);
+            go.GetComponent<NetworkObject>().Spawn();
+            go.transform.parent = _characterParents[1].transform;
+
             UpdateCharacterInLobby();
         }
     }

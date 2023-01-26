@@ -15,18 +15,11 @@ public class MenuControl : MonoBehaviour
 
     private readonly NetworkManager _networkManager = NetworkManager.Singleton;
 
-    private void Start()
-    {
-        if (NetworkManager.Singleton.IsListening) return;
-
-        CreateRelay();
-    }
-
     public async void CreateRelay()
     {
         try
         {
-            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(1);
+            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(1, "asia-southeast1");
             _lobbyHandler.SetJoinCode(await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId));
 
             _networkManager.GetComponent<UnityTransport>().SetHostRelayData(allocation.RelayServer.IpV4,
@@ -69,5 +62,11 @@ public class MenuControl : MonoBehaviour
         {
             Debug.LogException(e);
         }
+    }
+
+    public void LeaveRelay()
+    {
+        _networkManager.Shutdown();
+        _lobbyHandler.SetJoinCode("NIL");
     }
 }
