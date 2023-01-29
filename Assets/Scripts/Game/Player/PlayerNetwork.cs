@@ -14,6 +14,9 @@ public class PlayerNetwork : NetworkBehaviour
     [SerializeField] private GameObject _hitEffect;
     [SerializeField] private GameObject _shieldEffect;
 
+    [SerializeField] private List<AudioClip> _audioClips;
+    [SerializeField] private List<float> _audioDelays;
+
     private GameplayManager _gameplayManager;
     private PlayerInputActions _actions;
     private Rigidbody _rb;
@@ -22,6 +25,7 @@ public class PlayerNetwork : NetworkBehaviour
     private TimeScaleController _timeScaleController;
     private CameraController _cameraController;
     private Timer _timer;
+    private SoundManager _soundManager;
 
     private bool _gameDrawed = false;
 
@@ -67,6 +71,7 @@ public class PlayerNetwork : NetworkBehaviour
         _timeScaleController = TimeScaleController.Instance;
         _cameraController = CameraController.Instance;
         _timer = _gameplayManager.GetTimer();
+        _soundManager = SoundManager.Instance;
 
         _actions = new();
         _actions.Enable();
@@ -181,12 +186,43 @@ public class PlayerNetwork : NetworkBehaviour
         _isAttacking.Value = true;
         _allowCombo.Value = false;
 
-        if (_isCrouching.Value) PlayAnimationServerRpc("Light_Crouch", 0.05f);
+        if (_isCrouching.Value)
+        {
+            PlayAnimationServerRpc("Light_Crouch", 0.05f);
+            StartCoroutine(PlaySoundDelayed(_audioDelays[5], 5));
+        }
         else
         {
-            if (_normalizedInputX.Value == 0) PlayAnimationServerRpc("Light_Neutral", 0.05f);
-            else PlayAnimationServerRpc("Light_Forward", 0.05f);
+            if (_normalizedInputX.Value == 0)
+            {
+                PlayAnimationServerRpc("Light_Neutral", 0.05f);
+                StartCoroutine(PlaySoundDelayed(_audioDelays[3], 3));
+            }
+            else
+            {
+                PlayAnimationServerRpc("Light_Forward", 0.05f);
+                StartCoroutine(PlaySoundDelayed(_audioDelays[4], 4));
+            }
         }
+    }
+
+    private IEnumerator PlaySoundDelayed(float delay, int clipId)
+    {
+        yield return new WaitForSeconds(delay);
+
+        PlaySoundServerRpc(clipId);
+    }
+
+    [ServerRpc]
+    private void PlaySoundServerRpc(int clipId)
+    {
+        PlaySoundClientRpc(clipId);
+    }
+
+    [ClientRpc]
+    private void PlaySoundClientRpc(int clipId)
+    {
+        _soundManager.PlaySound(_audioClips[clipId]);
     }
 
     [ServerRpc]
@@ -256,6 +292,7 @@ public class PlayerNetwork : NetworkBehaviour
         else PlayAnimationServerRpc("Impact", 0.05f);
 
         HitEffectsServerRpc(pos, _isDead.Value);
+        StartCoroutine(PlaySoundDelayed(_audioDelays[6], 6));
     }
 
     [ServerRpc]
@@ -269,6 +306,9 @@ public class PlayerNetwork : NetworkBehaviour
     {
         GameObject effect = Instantiate(_shieldEffect, new Vector3(transform.position.x, transform.position.y + 1, transform.position.z), Quaternion.identity);
         effect.transform.LookAt(Camera.main.transform);
+
+        _soundManager.PlaySound(_audioClips[7]);
+
         StartCoroutine(DeleteEffectAfterTime(1f, effect));
     }
 

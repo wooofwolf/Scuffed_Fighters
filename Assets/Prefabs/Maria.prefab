@@ -279,6 +279,24 @@ MonoBehaviour:
     type: 3}
   _shieldEffect: {fileID: 8443315704496310910, guid: 6ef35fa36e3a65043b2d800600204bdd,
     type: 3}
+  _audioClips:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 8300000, guid: 7053294e066eb1945baa4d9cc9194f15, type: 3}
+  - {fileID: 8300000, guid: 13182107f288fdc47a11f9216c8f062b, type: 3}
+  - {fileID: 8300000, guid: 80151380c0f818243b66a78ef69c9fcd, type: 3}
+  - {fileID: 8300000, guid: 66b8d449c00a782459c69cce185ad889, type: 3}
+  - {fileID: 8300000, guid: 67dd73a8fb8b99e4d8c8d793c86c4324, type: 3}
+  _audioDelays:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0.1
+  - 0
+  - 0
+  - 0
 --- !u!1 &565432156235363714
 GameObject:
   m_ObjectHideFlags: 0

@@ -6,6 +6,7 @@ using Unity.Services.Relay.Models;
 using Unity.Services.Relay;
 using UnityEngine;
 using TMPro;
+using SlimUI.ModernMenu;
 
 public class MenuControl : MonoBehaviour
 {
@@ -17,6 +18,8 @@ public class MenuControl : MonoBehaviour
 
     public async void CreateRelay()
     {
+        if (NetworkManager.Singleton.IsListening) LeaveRelay();
+
         try
         {
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(1, "asia-southeast1");
@@ -39,6 +42,8 @@ public class MenuControl : MonoBehaviour
 
     public async void JoinRelay()
     {
+        if (NetworkManager.Singleton.IsListening) LeaveRelay();
+
         try
         {
             _networkManager.Shutdown();
