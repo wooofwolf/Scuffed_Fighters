@@ -95,14 +95,7 @@ public class LobbyHandler : NetworkBehaviour
 
     public void GetReady() // 1
     {
-        if (IsHost)
-        {
-            if (_characters[0] == 0) return;
-        }
-        else
-        {
-            if (_characters[1] == 0) return;
-        }
+        if (_characters[NetworkManager.LocalClientId] == 0) return;
 
         _clientsReady[_networkManager.LocalClientId] = true;
 

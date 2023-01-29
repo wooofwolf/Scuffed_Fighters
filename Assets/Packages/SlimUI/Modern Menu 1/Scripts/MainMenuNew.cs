@@ -21,8 +21,6 @@ namespace SlimUI.ModernMenu{
 		[Header("Panels")]
 		[Tooltip("The UI Panel parenting all sub menus")]
 		public GameObject mainCanvas;
-		[Tooltip("The UI Panel that holds the CONTROLS window tab")]
-		public GameObject PanelControls;
 		[Tooltip("The UI Panel that holds the VIDEO window tab")]
 		public GameObject PanelVideo;
 		[Tooltip("The UI Panel that holds the GAME window tab")]
@@ -159,7 +157,6 @@ namespace SlimUI.ModernMenu{
 		}
 
 		void DisablePanels(){
-			PanelControls.SetActive(false);
 			PanelVideo.SetActive(false);
 			PanelGame.SetActive(false);
 			PanelKeyBindings.SetActive(false);
@@ -191,8 +188,7 @@ namespace SlimUI.ModernMenu{
 
 		public void ControlsPanel(){
 			DisablePanels();
-			PanelControls.SetActive(true);
-			lineControls.SetActive(true);
+			PanelKeyBindings.SetActive(true);
 		}
 
 		public void KeyBindingsPanel(){

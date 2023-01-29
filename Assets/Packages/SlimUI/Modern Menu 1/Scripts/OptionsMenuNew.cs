@@ -33,46 +33,16 @@ namespace SlimUI.ModernMenu{
 		public GameObject texturehightextLINE;
 		public GameObject cameraeffectstext; 
 
-		[Header("GAME SETTINGS")]
-		public GameObject showhudtext;
-		public GameObject tooltipstext;
-		public GameObject difficultynormaltext;
-		public GameObject difficultynormaltextLINE;
-		public GameObject difficultyhardcoretext;
-		public GameObject difficultyhardcoretextLINE;
-
-		[Header("CONTROLS SETTINGS")]
-		public GameObject invertmousetext;
-
 		// sliders
 		public GameObject musicSlider;
-		public GameObject sensitivityXSlider;
-		public GameObject sensitivityYSlider;
-		public GameObject mouseSmoothSlider;
-
-		private float sliderValue = 0.0f;
-		private float sliderValueXSensitivity = 0.0f;
-		private float sliderValueYSensitivity = 0.0f;
-		private float sliderValueSmoothing = 0.0f;
+		public GameObject soundSlider;
 		
 
 		public void  Start (){
-			// check difficulty
-			if(PlayerPrefs.GetInt("NormalDifficulty") == 1){
-				difficultynormaltextLINE.gameObject.SetActive(true);
-				difficultyhardcoretextLINE.gameObject.SetActive(false);
-			}
-			else
-			{
-				difficultyhardcoretextLINE.gameObject.SetActive(true);
-				difficultynormaltextLINE.gameObject.SetActive(false);
-			}
 
 			// check slider values
 			musicSlider.GetComponent<Slider>().value = PlayerPrefs.GetFloat("MusicVolume");
-			sensitivityXSlider.GetComponent<Slider>().value = PlayerPrefs.GetFloat("XSensitivity");
-			sensitivityYSlider.GetComponent<Slider>().value = PlayerPrefs.GetFloat("YSensitivity");
-			mouseSmoothSlider.GetComponent<Slider>().value = PlayerPrefs.GetFloat("MouseSmoothing");
+			soundSlider.GetComponent<Slider>().value = PlayerPrefs.GetFloat("SoundVolume");
 
 			// check full screen
 			if(Screen.fullScreen == true){
@@ -80,22 +50,6 @@ namespace SlimUI.ModernMenu{
 			}
 			else if(Screen.fullScreen == false){
 				fullscreentext.GetComponent<TMP_Text>().text = "off";
-			}
-
-			// check hud value
-			if(PlayerPrefs.GetInt("ShowHUD")==0){
-				showhudtext.GetComponent<TMP_Text>().text = "off";
-			}
-			else{
-				showhudtext.GetComponent<TMP_Text>().text = "on";
-			}
-
-			// check tool tip value
-			if(PlayerPrefs.GetInt("ToolTips")==0){
-				tooltipstext.GetComponent<TMP_Text>().text = "off";
-			}
-			else{
-				tooltipstext.GetComponent<TMP_Text>().text = "on";
 			}
 
 			// check shadow distance/enabled
@@ -154,14 +108,6 @@ namespace SlimUI.ModernMenu{
 				vsynctext.GetComponent<TMP_Text>().text = "on";
 			}
 
-			// check mouse inverse
-			if(PlayerPrefs.GetInt("Inverted")==0){
-				invertmousetext.GetComponent<TMP_Text>().text = "off";
-			}
-			else if(PlayerPrefs.GetInt("Inverted")==1){
-				invertmousetext.GetComponent<TMP_Text>().text = "on";
-			}
-
 			// check motion blur
 			if(PlayerPrefs.GetInt("MotionBlur")==0){
 				motionblurtext.GetComponent<TMP_Text>().text = "off";
@@ -199,13 +145,6 @@ namespace SlimUI.ModernMenu{
 			}
 		}
 
-		public void Update (){
-			//sliderValue = musicSlider.GetComponent<Slider>().value;
-			sliderValueXSensitivity = sensitivityXSlider.GetComponent<Slider>().value;
-			sliderValueYSensitivity = sensitivityYSlider.GetComponent<Slider>().value;
-			sliderValueSmoothing = mouseSmoothSlider.GetComponent<Slider>().value;
-		}
-
 		public void FullScreen (){
 			Screen.fullScreen = !Screen.fullScreen;
 
@@ -217,34 +156,14 @@ namespace SlimUI.ModernMenu{
 			}
 		}
 
+		public void SoundSlider()
+        {
+			PlayerPrefs.SetFloat("SoundVolume", soundSlider.GetComponent<Slider>().value);
+		}
+
 		public void MusicSlider (){
 			//PlayerPrefs.SetFloat("MusicVolume", sliderValue);
 			PlayerPrefs.SetFloat("MusicVolume", musicSlider.GetComponent<Slider>().value);
-		}
-
-		public void SensitivityXSlider (){
-			PlayerPrefs.SetFloat("XSensitivity", sliderValueXSensitivity);
-		}
-
-		public void SensitivityYSlider (){
-			PlayerPrefs.SetFloat("YSensitivity", sliderValueYSensitivity);
-		}
-
-		public void SensitivitySmoothing (){
-			PlayerPrefs.SetFloat("MouseSmoothing", sliderValueSmoothing);
-			Debug.Log(PlayerPrefs.GetFloat("MouseSmoothing"));
-		}
-
-		// the playerprefs variable that is checked to enable hud while in game
-		public void ShowHUD (){
-			if(PlayerPrefs.GetInt("ShowHUD")==0){
-				PlayerPrefs.SetInt("ShowHUD",1);
-				showhudtext.GetComponent<TMP_Text>().text = "on";
-			}
-			else if(PlayerPrefs.GetInt("ShowHUD")==1){
-				PlayerPrefs.SetInt("ShowHUD",0);
-				showhudtext.GetComponent<TMP_Text>().text = "off";
-			}
 		}
 
 		// the playerprefs variable that is checked to enable mobile sfx while in game
@@ -268,32 +187,6 @@ namespace SlimUI.ModernMenu{
 				PlayerPrefs.SetInt("Mobile_MuteMusic",0);
 				mobileMusictext.GetComponent<TMP_Text>().text = "off";
 			}
-		}
-
-		// show tool tips like: 'How to Play' control pop ups
-		public void ToolTips (){
-			if(PlayerPrefs.GetInt("ToolTips")==0){
-				PlayerPrefs.SetInt("ToolTips",1);
-				tooltipstext.GetComponent<TMP_Text>().text = "on";
-			}
-			else if(PlayerPrefs.GetInt("ToolTips")==1){
-				PlayerPrefs.SetInt("ToolTips",0);
-				tooltipstext.GetComponent<TMP_Text>().text = "off";
-			}
-		}
-
-		public void NormalDifficulty (){
-			difficultyhardcoretextLINE.gameObject.SetActive(false);
-			difficultynormaltextLINE.gameObject.SetActive(true);
-			PlayerPrefs.SetInt("NormalDifficulty",1);
-			PlayerPrefs.SetInt("HardCoreDifficulty",0);
-		}
-
-		public void HardcoreDifficulty (){
-			difficultyhardcoretextLINE.gameObject.SetActive(true);
-			difficultynormaltextLINE.gameObject.SetActive(false);
-			PlayerPrefs.SetInt("NormalDifficulty",0);
-			PlayerPrefs.SetInt("HardCoreDifficulty",1);
 		}
 
 		public void ShadowsOff (){
@@ -358,17 +251,6 @@ namespace SlimUI.ModernMenu{
 			else if(QualitySettings.vSyncCount == 1){
 				QualitySettings.vSyncCount = 0;
 				vsynctext.GetComponent<TMP_Text>().text = "off";
-			}
-		}
-
-		public void InvertMouse (){
-			if(PlayerPrefs.GetInt("Inverted")==0){
-				PlayerPrefs.SetInt("Inverted",1);
-				invertmousetext.GetComponent<TMP_Text>().text = "on";
-			}
-			else if(PlayerPrefs.GetInt("Inverted")==1){
-				PlayerPrefs.SetInt("Inverted",0);
-				invertmousetext.GetComponent<TMP_Text>().text = "off";
 			}
 		}
 
