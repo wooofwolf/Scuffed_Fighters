@@ -1,17 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
-using Unity.Services.Lobbies;
-using Unity.Services.Lobbies.Models;
-using Unity.Services.Relay;
-using Unity.Services.Relay.Models;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameplayManager : NetworkBehaviour
 {
@@ -19,32 +11,53 @@ public class GameplayManager : NetworkBehaviour
     [SerializeField] private TextMeshProUGUI _winloseText;
     [SerializeField] private Timer _timer;
     [SerializeField] private CharacterSpawner _characterSpawner;
+    [SerializeField] private TextMeshProUGUI _startTimer;
+
+    [SerializeField] private AudioClip _bgmClip;
+
+    [SerializeField] private Animator _leftDoorAnimator;
+    [SerializeField] private Animator _rightDoorAnimator;
 
     public CameraManager CameraManager { get; private set; }
-
-    public enum GameplayState
-    {
-        START = 0,
-        IN_PROGRESS,
-        END
-    }
-
-    private GameplayState _gameplayState = GameplayState.START;
 
     private void Start()
     {
         _winloseGui.gameObject.SetActive(false);
 
         CameraManager = GameObject.Find("CM vcam1").GetComponent<CameraManager>();
+        StartCoroutine(StartGame());
     }
-
-    public GameplayState GetGameplayState()
+    private IEnumerator StartGame()
     {
-        return _gameplayState;
+        yield return new WaitForSecondsRealtime(2f);
+
+        SoundManager.Instance.PlayMusic(_bgmClip);
+
+        yield return new WaitForSecondsRealtime(1f);
+
+        _leftDoorAnimator.Play("Door_Left_Open");
+        _rightDoorAnimator.Play("Door_Right_Open");
+
+        // Countdown
+        for (int i = 0; i < 3; ++i)
+        {
+            _startTimer.SetText((3 - i).ToString());
+
+            yield return new WaitForSecondsRealtime(1f);
+        }
+
+        _startTimer.SetText("Go!");
+        _timer.SetTimerRunning(true);
+
+        yield return new WaitForSecondsRealtime(1f);
+
+        _startTimer.transform.parent.gameObject.SetActive(false);
     }
 
     public IEnumerator EndGame(int charId)
     {
+        SoundManager.Instance.StopMusic();
+
         _winloseGui.gameObject.SetActive(true);
 
         StringBuilder sb = new(" wins!", 20);

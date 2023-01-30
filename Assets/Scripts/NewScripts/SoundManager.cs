@@ -20,4 +20,17 @@ public class SoundManager : MonoBehaviour
     {
         _effectsSource.PlayOneShot(clip,PlayerPrefs.GetFloat("SoundVolume"));
     }
+
+    public void PlayMusic(AudioClip music)
+    {
+        _musicSource.clip = music;
+        _musicSource.loop = true;
+        _musicSource.volume = PlayerPrefs.GetFloat("MusicVolume");
+        _musicSource.Play();
+    }
+
+    public void StopMusic()
+    {
+        _musicSource.Stop();
+    }    
 }

@@ -16,6 +16,9 @@ public class LobbyHandler : NetworkBehaviour
     [SerializeField] private List<GameObject> _characterParents;
     [SerializeField] private List<GameObject> _characterPrefabs;
 
+    [SerializeField] private Animator _leftDoorAnimator;
+    [SerializeField] private Animator _rightDoorAnimator;
+
     private readonly NetworkManager _networkManager = NetworkManager.Singleton;
     private Dictionary<ulong, bool> _clientsReady;
     private Dictionary<ulong, int> _characters;
@@ -236,6 +239,11 @@ public class LobbyHandler : NetworkBehaviour
 
             counter--;
         }
+
+        _leftDoorAnimator.Play("Door_Left_Close");
+        _rightDoorAnimator.Play("Door_Right_Close");
+
+        yield return new WaitForSecondsRealtime(0.5f);
 
         GameManager.Instance.SetCharacters(_characters);
 

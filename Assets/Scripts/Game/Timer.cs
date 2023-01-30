@@ -15,7 +15,7 @@ public class Timer : NetworkBehaviour
     {
         _timerText = GetComponent<TextMeshProUGUI>();
         _timeLeft = 99;
-        _timerRunning = true;
+        _timerRunning = false;
     }
 
     private void Update()
