@@ -22,10 +22,13 @@ public class PlayerNetwork : NetworkBehaviour
     private Rigidbody _rb;
     private Animator _animator;
     private Healthbar _healthbar;
+    private ComboCounter _comboCounter;
     private TimeScaleController _timeScaleController;
     private CameraController _cameraController;
     private Timer _timer;
     private SoundManager _soundManager;
+    private PlayerNetwork _enemyNetwork;
+    private GameObject _projectile;
 
     private bool _gameDrawed = false;
 
@@ -73,6 +76,11 @@ public class PlayerNetwork : NetworkBehaviour
         _timer = _gameplayManager.GetTimer();
         _soundManager = SoundManager.Instance;
 
+        foreach (GameObject go in GameObject.FindGameObjectsWithTag("Player"))
+        {
+            if (go.GetComponent<PlayerNetwork>() != this) _enemyNetwork = go.GetComponent<PlayerNetwork>();
+        }
+
         _actions = new();
         _actions.Enable();
         _actions.Player.Crouch.performed += CrouchPerformed;
@@ -81,6 +89,7 @@ public class PlayerNetwork : NetworkBehaviour
         _isOwner = IsOwner;
 
         InitHealthbars(IsHost, _isOwner);
+        InitComboCounters(IsHost, _isOwner);
 
         InitPlayerServerRpc(IsHost);
     }
@@ -98,6 +107,22 @@ public class PlayerNetwork : NetworkBehaviour
         {
             if (isOwner) _healthbar = healthbars[0];
             else _healthbar = healthbars[1];
+        }
+    }
+
+    private void InitComboCounters(bool isHost, bool isOwner)
+    {
+        ComboCounter[] comboCounters = FindObjectsOfType<ComboCounter>();
+
+        if (isHost)
+        {
+            if (isOwner) _comboCounter = comboCounters[1];
+            else _comboCounter = comboCounters[0];
+        }
+        else
+        {
+            if (isOwner) _comboCounter = comboCounters[0];
+            else _comboCounter = comboCounters[1];
         }
     }
 
@@ -239,7 +264,10 @@ public class PlayerNetwork : NetworkBehaviour
 
     public void SpawnProjectile(Object obj)
     {
+        if (_projectile != null) return;
+
         Object projObj = Instantiate(obj, new Vector3(_hand.transform.position.x, _hand.transform.position.y, 0), Quaternion.Inverse(transform.rotation));
+        _projectile = projObj as GameObject;
         Projectile proj = (projObj as GameObject).GetComponent<Projectile>();
         proj.SetOwner(this);
     }
@@ -270,6 +298,8 @@ public class PlayerNetwork : NetworkBehaviour
             _isBlocking.Value = true;
             _canBlock.Value = false;
             PlayAnimationServerRpc("Blocking", 0.05f);
+            _enemyNetwork.ResetComboServerRpc("COUNTER");
+            ResetComboServerRpc("");
             ShieldEffectsServerRpc();
             return;
         }
@@ -280,6 +310,8 @@ public class PlayerNetwork : NetworkBehaviour
         _isBlocking.Value = false;
 
         UpdateHealthbarServerRpc(_health.Value);
+        _enemyNetwork.ResetComboServerRpc("");
+        AddComboServerRpc();
 
         if (_health.Value <= 0.0f)
         {
@@ -293,6 +325,30 @@ public class PlayerNetwork : NetworkBehaviour
 
         HitEffectsServerRpc(pos, _isDead.Value);
         StartCoroutine(PlaySoundDelayed(_audioDelays[6], 6));
+    }
+
+    [ServerRpc]
+    private void AddComboServerRpc()
+    {
+        AddComboClientRpc();
+    }
+
+    [ClientRpc]
+    private void AddComboClientRpc()
+    {
+        _comboCounter.AddToCombo();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ResetComboServerRpc(string text)
+    {
+        ResetComboClientRpc(text);
+    }
+
+    [ClientRpc]
+    private void ResetComboClientRpc(string text)
+    {
+        _comboCounter.ResetCombo(text);
     }
 
     [ServerRpc]
