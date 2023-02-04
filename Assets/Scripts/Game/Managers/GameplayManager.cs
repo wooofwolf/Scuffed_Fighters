@@ -20,6 +20,8 @@ public class GameplayManager : NetworkBehaviour
 
     public CameraManager CameraManager { get; private set; }
 
+    private int roundNumber;
+
     private void Start()
     {
         _winloseGui.gameObject.SetActive(false);

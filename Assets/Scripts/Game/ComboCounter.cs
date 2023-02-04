@@ -22,7 +22,6 @@ public class ComboCounter : MonoBehaviour
 
         if (_stayTimer < 0 && _comboText.alpha > 0)
         {
-            Debug.Log("Alpha decreasing to " + _comboText.alpha);
             _comboText.alpha -= Time.deltaTime;
         }
     }
