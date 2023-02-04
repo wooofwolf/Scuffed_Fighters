@@ -30,7 +30,7 @@ public class PlayerNetwork : NetworkBehaviour
     private PlayerNetwork _enemyNetwork;
     private GameObject _projectile;
 
-    private bool _gameDrawed = false;
+    private bool _gameStarted = false;
 
     private readonly NetworkVariable<float> _health = new(100.0f,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -62,6 +62,11 @@ public class PlayerNetwork : NetworkBehaviour
     private void Start()
     {
         StartCoroutine(Init());
+    }
+
+    public void SetGameStart(bool gameStarted)
+    {
+        _gameStarted = gameStarted;
     }
 
     private IEnumerator Init()
@@ -131,6 +136,13 @@ public class PlayerNetwork : NetworkBehaviour
     {
         InitPlayerPosClientRpc(isHost);
         InitCameraClientRpc();
+        InitTimerClientRpc();
+    }
+
+    [ClientRpc]
+    private void InitTimerClientRpc()
+    {
+        _timer.AddPlayer(this);
     }
 
     [ClientRpc]
@@ -157,14 +169,9 @@ public class PlayerNetwork : NetworkBehaviour
     private void Update()
     {
         if (!_isOwner) return;
+        if (!_gameStarted) return;
 
         _normalizedInputX.Value = _actions.Player.Movement.ReadValue<float>();
-
-        if (_timer.GetTimeLeft() < 0 && !_gameDrawed)
-        {
-            EndGameServerRpc(0);
-            _gameDrawed = true;
-        }
     }
 
     private void FixedUpdate()
@@ -196,6 +203,7 @@ public class PlayerNetwork : NetworkBehaviour
     private void CrouchPerformed(InputAction.CallbackContext context)
     {
         if (!_isOwner) return;
+        if (!_gameStarted) return;
 
         _isCrouching.Value = !_isCrouching.Value;
         _animator.SetBool("isCrouching", _isCrouching.Value);
@@ -207,6 +215,7 @@ public class PlayerNetwork : NetworkBehaviour
         if (_isAttacking.Value && !_allowCombo.Value) return;
         if (_isHit.Value) return;
         if (_isBlocking.Value) return;
+        if (!_gameStarted) return;
 
         _isAttacking.Value = true;
         _allowCombo.Value = false;
@@ -451,5 +460,10 @@ public class PlayerNetwork : NetworkBehaviour
         if (!_isOwner) return;
 
         _isBlocking.Value = false;
+    }
+
+    public float GetHealth()
+    {
+        return _health.Value;
     }
 }

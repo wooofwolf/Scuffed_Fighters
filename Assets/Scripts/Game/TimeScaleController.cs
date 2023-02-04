@@ -15,7 +15,7 @@ public class TimeScaleController : MonoBehaviour
 
     public IEnumerator HitStop(float timeScale, float timer)
     {
-        SetTimeScale(timeScale);
+        if (Time.timeScale > timeScale) SetTimeScale(timeScale);
 
         yield return new WaitForSecondsRealtime(timer);
 
@@ -24,7 +24,6 @@ public class TimeScaleController : MonoBehaviour
 
     private void SetTimeScale(float timeScale)
     {
-        Debug.Log("Time scale set to " + timeScale);
         Time.timeScale = timeScale;
     }
 }

@@ -50,6 +50,11 @@ public class GameplayManager : NetworkBehaviour
 
         _startTimer.SetText("Go!");
         _timer.SetTimerRunning(true);
+        
+        foreach (GameObject p in GameObject.FindGameObjectsWithTag("Player"))
+        {
+            p.GetComponent<PlayerNetwork>().SetGameStart(true);
+        }
 
         yield return new WaitForSecondsRealtime(1f);
 
@@ -61,6 +66,11 @@ public class GameplayManager : NetworkBehaviour
         SoundManager.Instance.StopMusic();
 
         _winloseGui.gameObject.SetActive(true);
+
+        foreach (GameObject p in GameObject.FindGameObjectsWithTag("Player"))
+        {
+            p.GetComponent<PlayerNetwork>().SetGameStart(false);
+        }
 
         StringBuilder sb = new(" wins!", 20);
         
