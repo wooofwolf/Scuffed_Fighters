@@ -17,7 +17,7 @@ public class Timer : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         _timerText = GetComponent<TextMeshProUGUI>();
-        _timeLeft = 10;
+        _timeLeft = 99;
         _timerRunning = false;
     }
 
@@ -40,6 +40,11 @@ public class Timer : NetworkBehaviour
     public int GetTimeLeft()
     {
         return (int)_timeLeft;
+    }
+
+    public void SetTimeLeft(float timeLeft)
+    {
+        _timeLeft = timeLeft;
     }
 
     public void SetTimerRunning(bool timerRunning)

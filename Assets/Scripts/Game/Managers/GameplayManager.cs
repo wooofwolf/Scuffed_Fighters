@@ -4,6 +4,7 @@ using System.Text;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameplayManager : NetworkBehaviour
 {
@@ -18,9 +19,13 @@ public class GameplayManager : NetworkBehaviour
     [SerializeField] private Animator _leftDoorAnimator;
     [SerializeField] private Animator _rightDoorAnimator;
 
+    [SerializeField] private GameObject _winsLeft;
+    [SerializeField] private GameObject _winsRight;
+    [SerializeField] private Sprite _winSprite;
+
     public CameraManager CameraManager { get; private set; }
 
-    private int roundNumber;
+    private int roundNumber = 0;
 
     private void Start()
     {
@@ -67,30 +72,109 @@ public class GameplayManager : NetworkBehaviour
 
         _winloseGui.gameObject.SetActive(true);
 
+        bool hasPlayerWon = false;
+
         foreach (GameObject p in GameObject.FindGameObjectsWithTag("Player"))
         {
             p.GetComponent<PlayerNetwork>().SetGameStart(false);
+            if (p.GetComponent<PlayerNetwork>().GetWins() >= 2)
+                hasPlayerWon = true;
         }
 
-        StringBuilder sb = new(" wins!", 20);
-        
-        switch (charId)
+        if (roundNumber >= 2 || hasPlayerWon)
         {
-            case 0:
-                sb = new("Draw!", 5);
-                break;
-            case 1:
-                sb.Insert(0, "Maria");
-                break;
-            case 2:
-                sb.Insert(0, "Abe");
-                break;
+            StringBuilder sb = new(" wins!", 20);
+
+            switch (charId)
+            {
+                case 0:
+                    sb = new("Draw!", 5);
+                    break;
+                case 1:
+                    sb.Insert(0, "Maria");
+                    break;
+                case 2:
+                    sb.Insert(0, "Abe");
+                    break;
+            }
+            _winloseText.SetText(sb.ToString());
+
+            yield return new WaitForSeconds(3);
+
+            SceneTransitionHandler.Instance.SwitchScene("MainMenu", SceneTransitionHandler.SceneStates.LOBBY);
         }
-        _winloseText.SetText(sb.ToString());
+        else
+        {
+            _winloseText.SetText("Game!");
 
-        yield return new WaitForSeconds(3);
+            yield return new WaitForSeconds(3);
 
-        SceneTransitionHandler.Instance.SwitchScene("MainMenu", SceneTransitionHandler.SceneStates.LOBBY);
+            StartCoroutine(StartNewRound());
+        }
+    }
+
+    private IEnumerator StartNewRound()
+    {
+        roundNumber++;
+
+        _leftDoorAnimator.Play("Door_Left_Close");
+        _rightDoorAnimator.Play("Door_Right_Close");
+
+        yield return new WaitForSecondsRealtime(1f);
+
+        foreach (GameObject p in GameObject.FindGameObjectsWithTag("Player"))
+        {
+            PlayerNetwork network = p.GetComponent<PlayerNetwork>();
+            network.ResetVariables();
+
+            int wins = network.GetWins();
+            // this player is the host
+            if (network.GetOwnerClientId() == 0)
+            {
+                if (wins > 0)
+                    _winsLeft.transform.GetChild(1).GetComponent<Image>().sprite = _winSprite;
+                if (wins > 1)
+                    _winsLeft.transform.GetChild(0).GetComponent<Image>().sprite = _winSprite;
+            }
+            else
+            {
+                if (wins > 0)
+                    _winsRight.transform.GetChild(0).GetComponent<Image>().sprite = _winSprite;
+                if (wins > 1)
+                    _winsRight.transform.GetChild(1).GetComponent<Image>().sprite = _winSprite;
+            }
+        }
+        _timer.SetTimerRunning(false);
+        _timer.SetTimeLeft(99f);
+        _winloseGui.gameObject.SetActive(false);
+
+        SoundManager.Instance.PlayMusic(_bgmClip);
+
+        yield return new WaitForSecondsRealtime(1f);
+
+        _leftDoorAnimator.Play("Door_Left_Open");
+        _rightDoorAnimator.Play("Door_Right_Open");
+
+        _startTimer.transform.parent.gameObject.SetActive(true);
+        // Countdown
+        for (int i = 0; i < 3; ++i)
+        {
+            _startTimer.SetText((3 - i).ToString());
+
+            yield return new WaitForSecondsRealtime(1f);
+        }
+
+        _startTimer.SetText("Go!");
+        _timer.SetTimerRunning(true);
+
+        foreach (GameObject p in GameObject.FindGameObjectsWithTag("Player"))
+        {
+            p.GetComponent<PlayerNetwork>().SetGameStart(true);
+        }
+
+        yield return new WaitForSecondsRealtime(1f);
+
+        _startTimer.transform.parent.gameObject.SetActive(false);
     }
 
     public Timer GetTimer()

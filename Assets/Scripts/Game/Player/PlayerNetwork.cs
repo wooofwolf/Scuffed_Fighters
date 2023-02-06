@@ -56,6 +56,8 @@ public class PlayerNetwork : NetworkBehaviour
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private readonly NetworkVariable<bool> _isDead = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<int> _wins = new(0,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     private bool _isOwner;
 
@@ -64,12 +66,17 @@ public class PlayerNetwork : NetworkBehaviour
         StartCoroutine(Init());
     }
 
+    public ulong GetOwnerClientId()
+    {
+        return OwnerClientId;
+    }    
+
     public void SetGameStart(bool gameStarted)
     {
         _gameStarted = gameStarted;
     }
 
-    private IEnumerator Init()
+    public IEnumerator Init()
     {
         yield return new WaitForSecondsRealtime(1f);
 
@@ -97,6 +104,61 @@ public class PlayerNetwork : NetworkBehaviour
         InitComboCounters(IsHost, _isOwner);
 
         InitPlayerServerRpc(IsHost);
+    }
+
+    public void ResetVariables()
+    {
+        if (!_isOwner) return;
+
+        _health.Value = 100f;
+        _normalizedInputX.Value = default;
+        _currentInputX.Value = default;
+        _isDead.Value = false;
+        _isCrouching.Value = false;
+        _isAttacking.Value = false;
+        _allowCombo.Value = false;
+        _allowHits.Value = true;
+        _isHit.Value = false;
+        _canBlock.Value = false;
+        _isBlocking.Value = false;
+        ResetVariablesServerRpc();
+        UpdateHealthbarServerRpc(_health.Value);
+
+        InitPlayerServerRpc(IsHost);
+    }
+
+    [ServerRpc]
+    private void ResetVariablesServerRpc()
+    {
+        ResetAnimatorClientRpc();
+        ResetComboClientRpc("");
+    }
+
+    [ClientRpc]
+    private void ResetAnimatorClientRpc()
+    {
+        _animator.SetBool("isCrouching", false);
+        _animator.SetFloat("xInput", 0);
+        PlayAnimationServerRpc("HorizontalMovement", 0f);
+    }
+
+    public int GetWins()
+    {
+        return _wins.Value;
+    }
+
+    [ServerRpc (RequireOwnership = false)]
+    public void SetWinsServerRpc(int wins)
+    {
+        Debug.Log("Setting wins");
+        SetWinsClientRpc(wins);
+    }
+
+    [ClientRpc]
+    public void SetWinsClientRpc(int wins)
+    {
+        Debug.Log("wins set from " + _wins.Value + " to " + wins);
+        _wins.Value = wins;
     }
 
     private void InitHealthbars(bool isHost, bool isOwner)
@@ -326,6 +388,7 @@ public class PlayerNetwork : NetworkBehaviour
         {
             _isDead.Value = true;
             PlayAnimationServerRpc("Death", 0.05f);
+            _enemyNetwork.SetWinsServerRpc(_enemyNetwork.GetWins() + 1);
 
             if (IsOwnedByServer) EndGameServerRpc(GameManager.Instance.GetCharacters()[1]);
             else EndGameServerRpc(GameManager.Instance.GetCharacters()[0]);
