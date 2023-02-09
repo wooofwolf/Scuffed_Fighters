@@ -56,7 +56,7 @@ public class PlayerNetwork : NetworkBehaviour
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private readonly NetworkVariable<bool> _isDead = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private readonly NetworkVariable<int> _wins = new(0,
+    private NetworkVariable<int> _wins = new(0,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     private bool _isOwner;

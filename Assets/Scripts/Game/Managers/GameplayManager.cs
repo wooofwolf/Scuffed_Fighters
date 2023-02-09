@@ -70,19 +70,28 @@ public class GameplayManager : NetworkBehaviour
     {
         SoundManager.Instance.StopMusic();
 
-        _winloseGui.gameObject.SetActive(true);
-
         bool hasPlayerWon = false;
+
+        yield return new WaitForSecondsRealtime(0.5f);
+
+        _winloseGui.gameObject.SetActive(true);
 
         foreach (GameObject p in GameObject.FindGameObjectsWithTag("Player"))
         {
             p.GetComponent<PlayerNetwork>().SetGameStart(false);
+
+            Debug.Log(p.gameObject.name + " wins: " + p.GetComponent<PlayerNetwork>().GetWins());
+
             if (p.GetComponent<PlayerNetwork>().GetWins() >= 2)
+            {
+                Debug.Log("Player has 2 wins or more");
                 hasPlayerWon = true;
+            }
         }
 
         if (roundNumber >= 2 || hasPlayerWon)
         {
+            Debug.Log("Player has won game");
             StringBuilder sb = new(" wins!", 20);
 
             switch (charId)
